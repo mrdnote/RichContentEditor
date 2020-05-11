@@ -108,10 +108,9 @@
     Language: 'EN',
     UploadUrl: '/api/MyFileApi/Upload',
     FileListUrl: '/api/MyFileApi/FileList',
-    GridFramework: framework,
-    Editors: this.getEditors()
+    GridFramework: 'GridFrameworkBootstrap'
 };
-var rce = this.instantiateMainEditor(options);</pre>
+new RichContentEditor().Init('MyEditor', options);</pre>
                                     </code>
                                 </div>
                             </div>
