@@ -4,9 +4,9 @@ class Editor
     {
         const _this = this;
 
-        const framework = $('#Framework').val();
+        const framework = $('#Framework').val() as string;
 
-        if (framework === 'materialize')
+        if (framework === 'GridFrameworkMaterialize')
         {
             (window as any).$('select').formSelect();
         }
@@ -16,7 +16,7 @@ class Editor
             Language: 'EN',
             UploadUrl: null,
             FileListUrl: null,
-            GridFramework: 'GridFrameworkBootstrap',
+            GridFramework: framework,
             Editors: this.getEditors()
         };
 
@@ -25,7 +25,7 @@ class Editor
         const options2: RichContentEditorOptions =
         {
             Language: 'EN',
-            GridFramework: 'GridFrameworkBootstrap'
+            GridFramework: framework
         };
 
         /*const _rce2 = */
@@ -48,14 +48,15 @@ class Editor
         $('#Framework').change(function ()
         {
             const newFramework = $(this).val() as string;
-            window.location.href = newFramework + '.html';
+            const page = newFramework === 'GridFrameworkBootstrap' ? 'bootstrap' : 'materialize';
+            window.location.href = page + '.html';
         });
 
         $('#ExportButton').click(function ()
         {
             $('#ExportTextArea').val(rce.GetHtml().trim());
             $('#ExportTextArea').removeClass('rce-hide');
-            if (framework === 'materialize')
+            if (framework === 'GridFrameworkMaterialize')
             {
                 (window as any).M.textareaAutoResize($('#ExportTextArea'));
             }

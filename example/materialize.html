@@ -39,11 +39,15 @@
                             <div class="card-content">
                                 <h3 class="card-title">Configurable</h3>
                                 <p>Specify which elements are supported, by including or excluding javascript files.</p>
-                                <input id="ImageCheckBox" type="checkbox" checked="checked" />
-                                <label for="ImageCheckBox">Images</label>
+                                <label>
+                                    <input id="ImageCheckBox" type="checkbox" checked="checked" />
+                                    <span>Images</span>
+                                </label>
                                 <br />
-                                <input id="TablesCheckBox" type="checkbox" checked="checked" />
-                                <label for="TablesCheckBox">Tables</label>
+                                <label>
+                                    <input id="TablesCheckBox" type="checkbox" checked="checked" />
+                                    <span>Tables</span>
+                                </label>
                             </div>
                         </div>
                     </div>
@@ -81,9 +85,9 @@
                             <div class="card-content">
                                 <h3 class="card-title">Responsive</h3>
                                 <p>Responsive from the get-go. Use the grid system of your favorite framework for creating responsive tables or roll you own and plug it in.</p>
-                                <select class="form-control" data-val="true" data-val-required="The Framework field is required." id="Framework" name="Framework">
-                                    <option selected="selected" value="materialize">Materialize</option>
-                                    <option value="bootstrap">Bootstrap</option>
+                                <select data-val="true" data-val-required="The Framework field is required." id="Framework" name="Framework">
+                                    <option selected="selected" value="GridFrameworkMaterialize">Materialize</option>
+                                    <option value="GridFrameworkBootstrap">Bootstrap</option>
                                 </select>
                             </div>
                         </div>

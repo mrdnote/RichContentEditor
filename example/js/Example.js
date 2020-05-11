@@ -4,20 +4,20 @@ var Editor = /** @class */ (function () {
     Editor.prototype.Init = function () {
         var _this = this;
         var framework = $('#Framework').val();
-        if (framework === 'materialize') {
+        if (framework === 'GridFrameworkMaterialize') {
             window.$('select').formSelect();
         }
         var options = {
             Language: 'EN',
             UploadUrl: null,
             FileListUrl: null,
-            GridFramework: 'GridFrameworkBootstrap',
+            GridFramework: framework,
             Editors: this.getEditors()
         };
         var rce = this.instantiateMainEditor(options);
         var options2 = {
             Language: 'EN',
-            GridFramework: 'GridFrameworkBootstrap'
+            GridFramework: framework
         };
         /*const _rce2 = */
         new RichContentEditor().Init('RichContentEditorCanvas2', options2);
@@ -33,12 +33,13 @@ var Editor = /** @class */ (function () {
         });
         $('#Framework').change(function () {
             var newFramework = $(this).val();
-            window.location.href = newFramework + '.html';
+            var page = newFramework === 'GridFrameworkBootstrap' ? 'bootstrap' : 'materialize';
+            window.location.href = page + '.html';
         });
         $('#ExportButton').click(function () {
             $('#ExportTextArea').val(rce.GetHtml().trim());
             $('#ExportTextArea').removeClass('rce-hide');
-            if (framework === 'materialize') {
+            if (framework === 'GridFrameworkMaterialize') {
                 window.M.textareaAutoResize($('#ExportTextArea'));
             }
         });
