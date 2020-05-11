@@ -116,6 +116,10 @@ var RichContentEditorOptions = /** @class */ (function () {
          * The language to display the editor in.
          */
         this.Language = "EN";
+        this.UploadUrl = null;
+        this.FileListUrl = null;
+        this.GridFramework = null;
+        this.Editors = null;
     }
     return RichContentEditorOptions;
 }());
@@ -335,16 +339,19 @@ var RichContentEditor = /** @class */ (function () {
     RichContentEditor.RegisterLocale = function (localeType, language) {
         RichContentEditor._localeRegistrations[language] = localeType;
     };
-    RichContentEditor.prototype.GetEditor = function (editorType) {
+    RichContentEditor.prototype.GetEditor = function (editor) {
         for (var i = 0; i < this.RegisteredEditors.length; i++) {
-            var editor = this.RegisteredEditors[i];
-            if (editor instanceof editorType)
-                return editor;
+            var editorInstance = this.RegisteredEditors[i];
+            if (editorInstance['Name'] === editor)
+                return editorInstance;
         }
         return null;
     };
     RichContentEditor.prototype.Init = function (editorId, options) {
         var _this = this;
+        if (!options) {
+            options = new RichContentEditorOptions();
+        }
         this.EditorId = editorId;
         var gridSelector = '#' + editorId;
         this.GridSelector = gridSelector;
@@ -527,7 +534,6 @@ var RichContentEditor = /** @class */ (function () {
 }());
 var DialogManager = /** @class */ (function () {
     function DialogManager(richContentEditor, language) {
-        this._richContentEditor = richContentEditor;
         if (!DialogManager._localeRegistrations.hasOwnProperty(language))
             throw "DialogManager locale for language " + language + " not registered!";
         this.Locale = new DialogManager._localeRegistrations[language]();
@@ -665,6 +671,15 @@ var RichContentTextEditor = /** @class */ (function (_super) {
         }
         this.Attach(textAreaWrapper, targetElement);
         textAreaWrapper.find('.rce-textarea-editor').focus();
+        textArea[0].onpaste = function (e) {
+            e.preventDefault();
+            var text = e.clipboardData.getData('text/plain');
+            var selection = window.getSelection();
+            if (!selection.rangeCount)
+                return false;
+            selection.deleteFromDocument();
+            selection.getRangeAt(0).insertNode(document.createTextNode(text));
+        };
     };
     RichContentTextEditor.prototype.GetMenuLabel = function () {
         return this._locale.MenuLabel;
