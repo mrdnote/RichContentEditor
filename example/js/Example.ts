@@ -14,8 +14,8 @@ class Editor
         const options: RichContentEditorOptions =
         {
             Language: 'EN',
-            UploadUrl: null,
-            FileListUrl: null,
+            UploadUrl: 'https://dnote.azurewebsites.net/api/EditorApi/Upload',
+            FileListUrl: 'https://dnote.azurewebsites.net/api/EditorApi/FileList',
             GridFramework: framework,
             Editors: this.getEditors()
         };
