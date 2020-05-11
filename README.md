@@ -5,7 +5,7 @@ RichContentEditor is a WYSIWYG editor for embedding in html. It is configurable 
 You can find a demo of the editor over on GitHub.io: https://mrdnote.github.io/RichContentEditor/example/bootstrap.html
 
 <h2>Getting started</h2>
-Download the repository archive, unzip it and add the css and javascript from the <code>dist</code> directory to your html:
+Download the repository archive, unzip it and add the css and javascript from the <code>dist</code> directory to your html. Also include the sortablejs library for sorting inside the editor.
 
 ```html
   <html>
@@ -16,7 +16,8 @@ Download the repository archive, unzip it and add the css and javascript from th
     
       <!-- your content -->
       
-      <script src="../dist/js/RichContentEditor.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.10.2/Sortable.min.js"></script>
+        <script src="../dist/js/RichContentEditor.js"></script>
     </body>
   </html>
 ```
