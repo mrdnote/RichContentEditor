@@ -1,0 +1,159 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>D|Note HTML Editor</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.css" />
+    <!--<link rel="stylesheet" href="../dist/css/RichContentEditor.css" />-->
+    <link rel="stylesheet" href="../src/css/RichContentEditor.css" />
+    <link rel="stylesheet" href="css/Example.css" />
+    <script src="https://kit.fontawesome.com/5a9fdc3af2.js" crossorigin="anonymous"></script>
+
+    <style>
+        body {
+            padding-top: 5rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">D|Note</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item active">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <main role="main" class="pb-3">
+
+
+
+            <h2 class="script">D|Note HTML Editor</h2>
+
+            <div id="RichContentEditorCanvas" style="height: 147px;">Loading...</div>
+
+            <div class="features-table">
+
+                <div class="row">
+
+                    <div class="col col-12 col-lg-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h3 class="card-title">Configurable</h3>
+                                <p>Specify which elements are supported, by including or excluding javascript files.</p>
+                                <input id="ImageCheckBox" type="checkbox" checked="checked" />
+                                <label for="ImageCheckBox">Images</label>
+                                <br />
+                                <input id="TablesCheckBox" type="checkbox" checked="checked" />
+                                <label for="TablesCheckBox">Tables</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col col-12 col-lg-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h3 class="card-title">Exportable</h3>
+                                <p>Export as html using GetHtml()</p>
+                                <button id="ExportButton" type="button" class="btn btn-primary">Export</button>
+                                <textarea id="ExportTextArea" class="rce-hide form-control" rows="10"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col col-12 col-lg-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h3 class="card-title">Multilingual</h3>
+                                <p>Use the standard language translations or write your own and plug them in</p>
+                                <select class="form-control" data-val="true" id="Language" name="Language">
+                                    <option selected="selected" value="EN">English</option>
+                                    <option value="NL">Nederlands</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col col-12 col-lg-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h3 class="card-title">Responsive</h3>
+                                <p>Responsive from the get-go. Use the grid system of your favorite framework for creating responsive tables or roll you own and plug it in.</p>
+                                <select class="form-control" data-val="true" data-val-required="The Framework field is required." id="Framework" name="Framework">
+                                    <option value="materialize">Materialize</option>
+                                    <option selected="selected" value="bootstrap">Bootstrap</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="row">
+                    <div class="col col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <h3 class="card-title">Multiple editors</h3>
+                                <p>You can have multiple editors on one page</p>
+                                <div id="RichContentEditorCanvas2" style="height: 140px;">Loading...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+
+        </main>
+    </div>
+
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy;2020 Dnote Software - <a href="/Home/Privacy">Privacy</a>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.10.2/Sortable.min.js"></script>
+
+    <!--<script src="../dist/js/RichContentEditor.js"></script>
+    <script src="../dist/js/RichContentEditorNL.js"></script>-->
+
+    <script src="../src/js/RichContentBaseEditor.js"></script>
+    <script src="../src/js/RichContentEditor.js"></script>
+    <script src="../src/js/RichContentTextEditor.js"></script>
+    <script src="../src/js/RichContentImageEditor.js"></script>
+    <script src="../src/js/RichContentTableEditor.js"></script>
+    <script src="../src/js/GridFrameworkBootstrap.js"></script>
+    <script src="../src/js/GridFrameworkMaterialize.js"></script>
+    <script src="../src/js/Locale/DialogManagerLocaleEN.js"></script>
+    <script src="../src/js/Locale/DialogManagerLocaleNL.js"></script>
+    <script src="../src/js/Locale/FileManagerLocaleEN.js"></script>
+    <script src="../src/js/Locale/FileManagerLocaleNL.js"></script>
+    <script src="../src/js/Locale/RichContentEditorLocaleEN.js"></script>
+    <script src="../src/js/Locale/RichContentEditorLocaleNL.js"></script>
+    <script src="../src/js/Locale/RichContentImageEditorLocaleEN.js"></script>
+    <script src="../src/js/Locale/RichContentImageEditorLocaleNL.js"></script>
+    <script src="../src/js/Locale/RichContentTableEditorLocaleEN.js"></script>
+    <script src="../src/js/Locale/RichContentTableEditorLocaleNL.js"></script>
+    <script src="../src/js/Locale/RichContentTextEditorLocaleEN.js"></script>
+    <script src="../src/js/Locale/RichContentTextEditorLocaleNL.js"></script>
+
+    <script src="js/Example.js"></script>
+    <script>
+        new Editor().Init();
+    </script>
+</body>
+</html>

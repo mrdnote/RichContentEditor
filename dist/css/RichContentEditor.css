@@ -1,0 +1,426 @@
+﻿.rce-grid-wrapper {
+    position: relative;
+    margin-top: 40px;
+}
+
+.rce-grid-wrapper.edit-mode .rce-grid {
+    border: solid 1px silver;
+    border-radius: 5px;
+    padding: 5px 5px 0 5px;
+    min-height: 100px;
+}
+
+.rce-grid-wrapper.edit-mode .rce-grid:after {
+    content: '';
+    clear: both;
+    display: block;
+    height: 0;
+}
+
+.rce-editor-top-icons {
+    top: -32px;
+    right: 0;
+    position: absolute;
+}
+
+.rce-grid .hover-button {
+    display: none;
+    user-select: none;
+}
+
+.rce-grid-wrapper.edit-mode .rce-grid .hover-button {
+    display: block;
+    border: none;
+    padding: 0 5px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    font-size: 9px;
+    transform: rotate(-90deg) translate(-100%, 0);
+    transform-origin: 0 0;
+    min-width: 24px;
+    line-height: 14px;
+    height: 14px;
+    background-color: #ccc;
+    background-color: rgba(0,0,0,0.125);
+}
+
+.rce-grid-wrapper.edit-mode .rce-grid .hover-button:hover {
+    background-color: #999;
+}
+
+.rce-image-wrapper .rce-image {
+    width: 100%;
+}
+
+.rce-image-wrapper.rce-image-block {
+    width: 100%;
+}
+
+.rce-image-wrapper.rce-image-left {
+    float: left;
+    margin-right: 5px;
+}
+
+.rce-image-wrapper.rce-image-right {
+    float: right;
+    margin-left: 5px;
+}
+
+.rce-image-wrapper {
+    position: relative;
+}
+
+.rce-grid .rce-textarea-wrapper {
+    position: relative;
+}
+
+.rce-grid .rce-textarea-editor {
+    margin-bottom: 5px;
+}
+
+.rce-grid .rce-textarea-editor:hover {
+    background-color: #f7f7f7;
+}
+
+.rce-grid-wrapper.edit-mode .rce-grid .rce-editor-wrapper {
+    padding-left: 16px;
+    padding-top: 5px;
+    padding-right: 5px;
+    padding-bottom: 0;
+    margin-bottom: 5px;
+    border: dotted 1px silver;
+}
+
+.rce-table-wrapper {
+    position: relative;
+}
+
+.rce-grid-wrapper.edit-mode .rce-grid .rce-table-wrapper {
+    min-height: 44px;
+}
+
+.rce-grid .rce-table .row {
+    position: relative;
+}
+
+.rce-grid-wrapper.edit-mode .rce-grid .rce-table .row {
+    padding-top: 5px;
+    padding-bottom: 0;
+    padding-right: 5px;
+    min-height: 34px;
+    margin-left: 0;
+}
+
+.rce-table .row .col {
+    min-height: 2em;
+    position: relative;
+    padding-right: 25px;
+}
+
+.rce-grid-wrapper.edit-mode .rce-table .row {
+    /* Fix for boostrap table layout in edit mode */
+    margin-right: 0;
+}
+
+.rce-grid-wrapper.edit-mode .rce-grid .row .col {
+    padding-left: 0;
+    padding-right: 5px;
+}
+
+.rce-grid-wrapper.edit-mode .rce-grid .rce-table .row .col .inner {
+    min-height: 2em;
+    padding-left: 16px;
+}
+
+.rce-editor-ui-wrapper {
+    height: 0;
+    position: relative;
+}
+
+.rce-editor-ui-wrapper button {
+    padding: 0 5px;
+}
+
+.rce-editor-floating-ui-wrapper button {
+    padding: 0 5px;
+}
+
+.rce-editor-ui {
+    border: solid 1px silver;
+    border-bottom: none;
+    background-color: white;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+}
+
+.rce-grid .add-button {
+    padding: 0 5px;
+}
+
+.rce-grid-wrapper:not(.edit-mode) .add-button {
+    display: none;
+}
+
+.rce-column-editor-ui-wrapper {
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+.file-dialog .file-path-wrapper-with-progress {
+    position: relative;
+}
+
+.file-dialog .file-path-wrapper-with-progress .file-path-wrapper-progress {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    background-color: #26a69a7f;
+    margin-top: 0;
+}
+
+.file-dialog .file-table {
+    height: 200px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background-color: #eee;
+    padding: 5px;
+}
+
+.file-dialog .file-table .col {
+    cursor: pointer;
+}
+
+.rce-menu {
+    position: absolute;
+    background-color: white;
+    border: solid 1px silver;
+    -webkit-box-shadow: 5px 5px 5px 0px rgba(0,0,0,0.1);
+    -moz-box-shadow: 5px 5px 5px 0px rgba(0,0,0,0.1);
+    box-shadow: 5px 5px 5px 0px rgba(0,0,0,0.1);
+}
+
+.rce-menu-item {
+    display: block;
+    color: inherit;
+    padding: 15px;
+    border: none;
+    width: 100%;
+    text-align: left;
+}
+
+.rce-menu-item i {
+    width: 24px;
+}
+
+.rce-menu-item:hover {
+    background-color: rgba(0,0,0,0.125);
+}
+
+.rce-menu-button {
+    /* Fix for weird symbol for the button caret in bootstrap default font */
+    font-family: "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif !important;
+}
+
+.rce-dialog {
+    display: none;
+}
+
+.rce-modal-backdrop {
+    /* Fix backdrop falling behind materialize select controls */ 
+    z-index: 2;
+}
+
+.rce-modal-backdrop .rce-dialog {
+    display: block;
+    position: fixed;
+    width: 600px;
+    left: calc(50% - 300px);
+    top: calc(50% - 300px);
+    padding: 15px;
+    background-color: white;
+    border: solid 1px silver;
+    -webkit-box-shadow: 5px 5px 5px 0px rgba(0,0,0,0.1);
+    -moz-box-shadow: 5px 5px 5px 0px rgba(0,0,0,0.1);
+    box-shadow: 5px 5px 5px 0px rgba(0,0,0,0.1);
+}
+
+.rce-modal-backdrop .rce-dialog .rce-dialog-title {
+    font-weight: bold;
+    font-size: larger;
+    margin-bottom: 15px;
+}
+
+.rce-dialog .rce-dialog-footer {
+    text-align: right;
+}
+
+.rce-modal-backdrop.active .rce-dialog {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: all;
+}
+
+.rce-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.125);
+    visibility: hidden;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.5s;
+}
+
+.rce-modal-backdrop.active {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: all;
+}
+
+.rce-button {
+    display: inline-block;
+    color: inherit;
+    background-color: #ccc;
+    line-height: 35px;
+    white-space: nowrap;
+    padding: 0 15px;
+}
+
+.rce-button:disabled {
+    background-color: #eee;
+    color: #ccc;
+}
+
+button.rce-button {
+    border: none;
+}
+
+.rce-button.rce-button-flat {
+    background-color: transparent;
+}
+
+.rce-button.rce-button-toolbar {
+    background-color: transparent;
+    padding: 0 5px;
+    line-height: 32px;
+}
+
+.rce-button:not(:disabled):hover {
+    background-color: #aaa;
+    transition: background-color 0.5s;
+}
+
+ul.rce-tabs {
+    white-space: nowrap;
+    margin: 0;
+    list-style: none;
+    padding-left: 0;
+}
+
+.rce-tabs::after {
+    content: "";
+    clear: both;
+    display: block;
+}
+
+.rce-tabs .rce-tab {
+    float: left;
+    border: solid 1px silver;
+    border-bottom: none;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    padding: 0 10px;
+    background-color: #ccc;
+    margin-right: 1px;
+}
+
+.rce-tabs .rce-tab a {
+    color: inherit;
+    line-height: 2;
+}
+
+.rce-tabs .rce-tab.active {
+    background-color: #fff;
+}
+
+.rce-tab-body {
+    display: none;
+    border: solid 1px silver;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    border-bottom-left-radius: 5px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.rce-tab-body.active {
+    display: block;
+    border: solid 1px silver;
+}
+
+.rce-clear {
+    clear: both;
+}
+
+.rce-left {
+    float: left;
+}
+
+.rce-right {
+    float: right;
+}
+
+.rce-label {
+    font-size: smaller;
+    margin-bottom: 0;
+}
+
+.rce-input, .rce-textarea {
+    display: block;
+    width: 100%;
+    border: solid 1px silver;
+    border-radius: 5px;
+    padding: .375rem .75rem
+}
+
+.rce-form-field .rce-error-text {
+    font-size: smaller;
+    display: none;
+    color: red;
+}
+
+.rce-form-field.invalid .rce-error-text {
+    display: block;
+}
+
+.rce-form-field.rce-form-field-inline {
+    margin-bottom: 5px;
+}
+
+.rce-form-field.rce-form-field-inline:after {
+    content: '';
+    clear: both;
+    display: block;
+    height: 0;
+}
+
+.rce-form-field.rce-form-field-inline .rce-label {
+    width: 50%;
+    float: left;
+}
+
+.rce-form-field.rce-form-field-inline .rce-input {
+    width: 50%;
+    float: left;
+}
+
+.rce-hide {
+    display: none;
+}
