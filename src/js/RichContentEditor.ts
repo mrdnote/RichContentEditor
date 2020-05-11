@@ -5,13 +5,13 @@
      */
     public Language: string = "EN";
 
-    public UploadUrl?: string;
+    public UploadUrl?: string = null;
 
-    public FileListUrl?: string;
+    public FileListUrl?: string = null;
 
-    public GridFramework?: string;
+    public GridFramework?: string = null;
 
-    public Editors?: string[];
+    public Editors?: string[] = null;
 }
 
 class GridFrameworkBase
@@ -397,6 +397,11 @@ class RichContentEditor
     {
         const _this = this;
 
+        if (!options)
+        {
+            options = new RichContentEditorOptions();
+        }
+
         this.EditorId = editorId;
         const gridSelector = '#' + editorId;
         this.GridSelector = gridSelector;
@@ -655,8 +660,6 @@ class DialogManager
     private static _eventAttached = false;
     private static _localeRegistrations: Dictionary<typeof DialogManagerLocale> = {};
 
-    private _richContentEditor: RichContentEditor;
-
     public Locale: DialogManagerLocale;
 
     public static RegisterLocale<T extends typeof DialogManagerLocale>(localeType: T, language: string)
@@ -666,8 +669,6 @@ class DialogManager
 
     public constructor(richContentEditor: RichContentEditor, language: string)
     {
-        this._richContentEditor = richContentEditor;
-
         if (!DialogManager._localeRegistrations.hasOwnProperty(language)) throw `DialogManager locale for language ${language} not registered!`;
         this.Locale = new DialogManager._localeRegistrations[language]();
     }
