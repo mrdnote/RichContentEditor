@@ -392,9 +392,11 @@ var RichContentEditor = /** @class */ (function () {
             _this.showAddMenu($(this).offset().left, $(this).offset().top);
         });
         var grid = $(gridSelector + ' .rce-grid');
-        window.Sortable.create(grid[0], {
-            draggable: '.rce-editor-wrapper'
-        });
+        if (window.Sortable) {
+            window.Sortable.create(grid[0], {
+                draggable: '.rce-editor-wrapper'
+            });
+        }
         $(document).click(function (e) {
             var target = $(e.target);
             if (!target.hasClass('rce-menu-button') && target.closest('.rce-menu,.rce-menu-button').length === 0)
@@ -870,14 +872,16 @@ var RichContentTableEditor = /** @class */ (function (_super) {
         _this.addTableColumn(row);
         table.append(row);
         _this.SetupEditor(row, true);
-        window.Sortable.create(row[0], {
-            group: 'row-content',
-            draggable: '.rce-editor-wrapper'
-        });
-        window.Sortable.create(row.closest('.rce-table')[0], {
-            group: 'table-content',
-            draggable: '.rce-editor-wrapper'
-        });
+        if (window.Sortable) {
+            window.Sortable.create(row[0], {
+                group: 'row-content',
+                draggable: '.rce-editor-wrapper'
+            });
+            window.Sortable.create(row.closest('.rce-table')[0], {
+                group: 'table-content',
+                draggable: '.rce-editor-wrapper'
+            });
+        }
     };
     RichContentTableEditor.prototype.addTableColumn = function (row) {
         var _this = this;
@@ -896,10 +900,12 @@ var RichContentTableEditor = /** @class */ (function (_super) {
         var colClass = _this.RichContentEditorInstance.GridFramework.GetColumnClass(newWidth);
         var col = $("<div class=\"" + colClass + "\"></div>");
         col.append(inner);
-        window.Sortable.create(inner[0], {
-            group: 'column-content',
-            draggable: '.rce-editor-wrapper'
-        });
+        if (window.Sortable) {
+            window.Sortable.create(inner[0], {
+                group: 'column-content',
+                draggable: '.rce-editor-wrapper'
+            });
+        }
         col.appendTo(row);
         this.SetupEditor(col, true);
     };
@@ -961,10 +967,12 @@ var RichContentTableEditor = /** @class */ (function (_super) {
                 insertCommand = new ContextCommand(editor.GetMenuLabel(), editor.GetMenuIconClasses(), function (elem) {
                     var inner = elem.find('.inner');
                     editor.Insert(inner);
-                    window.Sortable.create(inner[0], {
-                        group: 'col',
-                        draggable: '.rce-editor-wrapper'
-                    });
+                    if (window.Sortable) {
+                        window.Sortable.create(inner[0], {
+                            group: 'col',
+                            draggable: '.rce-editor-wrapper'
+                        });
+                    }
                 });
                 result.push(insertCommand);
             }
@@ -1015,10 +1023,12 @@ var RichContentTableEditor = /** @class */ (function (_super) {
         var result = [];
         var insertColumnCommand = new ContextCommand(this._locale.InsertColumnMenuLabel, 'fas fa-indent', function (elem) {
             _this.addTableColumn(elem);
-            window.Sortable.create(elem[0], {
-                group: 'row-content',
-                draggable: '.rce-editor-wrapper'
-            });
+            if (window.Sortable) {
+                window.Sortable.create(elem[0], {
+                    group: 'row-content',
+                    draggable: '.rce-editor-wrapper'
+                });
+            }
         });
         result.push(insertColumnCommand);
         return result;

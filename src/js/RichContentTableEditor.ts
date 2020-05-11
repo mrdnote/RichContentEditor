@@ -71,15 +71,18 @@
         table.append(row);
         _this.SetupEditor(row, true);
 
-        (window as any).Sortable.create(row[0], {
-            group: 'row-content',
-            draggable: '.rce-editor-wrapper'
-        });
+        if ((window as any).Sortable)
+        {
+            (window as any).Sortable.create(row[0], {
+                group: 'row-content',
+                draggable: '.rce-editor-wrapper'
+            });
 
-        (window as any).Sortable.create(row.closest('.rce-table')[0], {
-            group: 'table-content',
-            draggable: '.rce-editor-wrapper'
-        });
+            (window as any).Sortable.create(row.closest('.rce-table')[0], {
+                group: 'table-content',
+                draggable: '.rce-editor-wrapper'
+            });
+        }
     }
 
     private addTableColumn(row: JQuery<HTMLElement>)
@@ -104,10 +107,13 @@
         const col = $(`<div class="${colClass}"></div>`);
         col.append(inner);
 
-        (window as any).Sortable.create(inner[0], {
-            group: 'column-content',
-            draggable: '.rce-editor-wrapper'
-        });
+        if ((window as any).Sortable)
+        {
+            (window as any).Sortable.create(inner[0], {
+                group: 'column-content',
+                draggable: '.rce-editor-wrapper'
+            });
+        }
 
         col.appendTo(row);
         this.SetupEditor(col, true);
@@ -195,10 +201,13 @@
                 {
                     let inner = elem.find('.inner');
                     editor.Insert(inner);
-                    (window as any).Sortable.create(inner[0], {
-                        group: 'col',
-                        draggable: '.rce-editor-wrapper'
-                    });
+                    if ((window as any).Sortable)
+                    {
+                        (window as any).Sortable.create(inner[0], {
+                            group: 'col',
+                            draggable: '.rce-editor-wrapper'
+                        });
+                    }
                 });
                 result.push(insertCommand);
             }
@@ -258,10 +267,13 @@
         var insertColumnCommand = new ContextCommand(this._locale.InsertColumnMenuLabel, 'fas fa-indent', function (elem)
         {
             _this.addTableColumn(elem);
-            (window as any).Sortable.create(elem[0], {
-                group: 'row-content',
-                draggable: '.rce-editor-wrapper'
-            });
+            if ((window as any).Sortable)
+            {
+                (window as any).Sortable.create(elem[0], {
+                    group: 'row-content',
+                    draggable: '.rce-editor-wrapper'
+                });
+            }
         });
         result.push(insertColumnCommand);
 

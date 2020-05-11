@@ -458,10 +458,13 @@ class RichContentEditor
         });
 
         var grid = $(gridSelector + ' .rce-grid');
-        (window as any).Sortable.create(grid[0],
+        if ((window as any).Sortable)
         {
-            draggable: '.rce-editor-wrapper'
-        });
+            (window as any).Sortable.create(grid[0],
+                {
+                    draggable: '.rce-editor-wrapper'
+                });
+        }
 
         $(document).click(function (e)
         {
