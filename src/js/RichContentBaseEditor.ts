@@ -76,6 +76,11 @@ class RichContentBaseEditor
         return null;
     }
 
+    public GetToolbarCommands(_elem: JQuery<HTMLElement>): ContextCommand[]
+    {
+        return null;
+    }
+
     public AllowInTableCell(): boolean
     {
         return false;
@@ -96,18 +101,24 @@ class RichContentBaseEditor
         elem.prepend(menuButton);
         menuButton.click(function ()
         {
-            _this.showContextMenu(elem, menuButton.offset().left, menuButton.offset().top);
+            _this.showContextMenu(elem, menuButton);
         });
 
-        elem.bind('contextmenu', function(e)
+        elem.bind('contextmenu', function (e)
         {
             e.preventDefault();
             e.stopPropagation();
-            _this.showContextMenu(elem, e.clientX, e.clientY);
+            _this.showContextMenu(elem, new XYPosition(e.clientX, e.clientY));
+        });
+
+        elem.focusin(function (e)
+        {
+            _this.showToolbar(elem);
+            e.preventDefault();
         });
     }
 
-    private showContextMenu(elem: JQuery<HTMLElement>, left: number, top: number)
+    private showContextMenu(elem, buttonOrPosition: JQuery<HTMLElement> | XYPosition)
     {
         const _this = this;
 
@@ -135,9 +146,36 @@ class RichContentBaseEditor
         deleteItem.click(function () { _this.OnDelete(elem), menu.remove(); });
         menu.append(deleteItem)
 
-        menu.css({ left: left, top: top });
-        $('body').append(menu);
+        Utils.ShowMenu(menu, buttonOrPosition);
+    }
 
+    private showToolbar(elem: JQuery<HTMLElement>)
+    {
+        const commands = this.GetToolbarCommands(elem);
+        if (commands !== null)
+        {
+            let toolbar = elem.find('.rce-toolbar');
+
+            // close all other toolbars
+            $('.rce-toolbar').not(toolbar).remove();
+
+            if (!toolbar.length)
+            {
+                toolbar = $('<div class="rce-toolbar"></ul>');
+                for (let i = 0; i < commands.length; i++)
+                {
+                    const command = commands[i];
+                    const item = $(`<button type="button" class="rce-button rce-toolbar-item" title="${command.Label}"><i class="rce-toolbar-icon ${command.IconClasses}"></i></button>`);
+                    item.click(function (e)
+                    {
+                        e.preventDefault();
+                        command.OnClick(elem);
+                    });
+                    toolbar.append(item);
+                }
+                elem.prepend(toolbar);
+            }
+        }
     }
 
     public OnDelete(elem: JQuery<HTMLElement>)

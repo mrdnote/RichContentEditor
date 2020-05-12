@@ -424,3 +424,25 @@ ul.rce-tabs {
 .rce-hide {
     display: none;
 }
+
+.rce-fa-rotate-correct.fa-rotate-90 {
+    margin-left: -5px;
+    text-align: center;
+}
+
+.rce-toolbar {
+    margin-top: -7px;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.rce-toolbar .rce-button {
+    line-height: 22px;
+    padding-left: 10px;
+    padding-right: 10px;
+    background-color: #eee;
+}
+
+.rce-toolbar .rce-button i {
+    font-size: smaller;
+}

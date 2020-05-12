@@ -454,7 +454,7 @@ class RichContentEditor
         $(gridSelector + ' .add-button').click(function ()
         {
             _this.CloseAllMenus();
-            _this.showAddMenu($(this).offset().left, $(this).offset().top);
+            _this.showAddMenu($(this));
         });
 
         var grid = $(gridSelector + ' .rce-grid');
@@ -489,7 +489,7 @@ class RichContentEditor
             e.preventDefault();
             e.stopPropagation();
             _this.CloseAllMenus();
-            _this.showAddMenu(e.clientX, e.clientY);
+            _this.showAddMenu(new XYPosition(e.clientX, e.clientY));
         });
 
         this.instantiateEditors(options.Editors);
@@ -552,7 +552,7 @@ class RichContentEditor
     {
         const _this = this;
 
-        if (elem.hasClass('rce-menu-button'))
+        if (elem.hasClass('rce-menu-button') || elem.hasClass('rce-toolbar'))
         {
             elem.remove();
         }
@@ -638,11 +638,11 @@ class RichContentEditor
         $('.rce-menu').remove();
     }
 
-    private showAddMenu(left: number, top: number)
+    private showAddMenu(button: JQuery<HTMLElement> | XYPosition)
     {
         const _this = this;
 
-        const menu = $('<div class="rce-menu"></ul>');
+        const menu = $('<div class="rce-menu"></div>');
 
         for (let i = 0; i < this.RegisteredEditors.length; i++)
         {
@@ -652,8 +652,7 @@ class RichContentEditor
             menu.append(item);
         }
 
-        menu.css({ left: left, top: top });
-        $('body').append(menu);
+        Utils.ShowMenu(menu, button);
     }
 }
 
@@ -806,10 +805,10 @@ class HtmlTemplates
                 </div>
 
                 <div class="rce-editor-top-icons">
-                    <button type="button" class="rce-button rce-button-toolbar rce-editor-save"><i class="fas fa-save"></i></button>
                     <button type="button" class="rce-button rce-button-toolbar rce-editor-preview"><i class="fas fa-eye"></i></button>
                     <button type="button" class="rce-button rce-button-toolbar rce-editor-preview-lock"><i class="fas fa-lock-open"></i></button>
                     <button type="button" class="rce-button rce-button-toolbar rce-editor-preview-unlock rce-hide"><i class="fas fa-lock"></i></button>
+                    <button type="button" class="rce-button rce-button-toolbar rce-editor-save"><i class="fas fa-save"></i></button>
                 </div>
             </div>`
     }

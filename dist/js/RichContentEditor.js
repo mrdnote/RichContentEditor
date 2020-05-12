@@ -1,3 +1,29 @@
+var XYPosition = /** @class */ (function () {
+    function XYPosition(x, y) {
+        this.X = x;
+        this.Y = y;
+    }
+    return XYPosition;
+}());
+var Utils = /** @class */ (function () {
+    function Utils() {
+    }
+    Utils.ShowMenu = function (menu, buttonOrPosition) {
+        var xy;
+        if (buttonOrPosition instanceof XYPosition) {
+            xy = buttonOrPosition;
+        }
+        else {
+            var button = buttonOrPosition;
+            menu.data('origin', button);
+            xy = new XYPosition(button.offset().left, button.offset().top + button.height());
+        }
+        menu.css({ left: xy.X, top: xy.Y });
+        $('body').append(menu);
+    };
+    return Utils;
+}());
+//# sourceMappingURL=Utils.js.map
 var KeyValue = /** @class */ (function () {
     function KeyValue() {
     }
@@ -41,6 +67,9 @@ var RichContentBaseEditor = /** @class */ (function () {
     RichContentBaseEditor.prototype.GetContextCommands = function (_elem) {
         return null;
     };
+    RichContentBaseEditor.prototype.GetToolbarCommands = function (_elem) {
+        return null;
+    };
     RichContentBaseEditor.prototype.AllowInTableCell = function () {
         return false;
     };
@@ -56,15 +85,19 @@ var RichContentBaseEditor = /** @class */ (function () {
         var menuButton = $("<button type=\"button\" class=\"hover-button rce-menu-button\">" + menuButtonText + "\u25C0</button>");
         elem.prepend(menuButton);
         menuButton.click(function () {
-            _this.showContextMenu(elem, menuButton.offset().left, menuButton.offset().top);
+            _this.showContextMenu(elem, menuButton);
         });
         elem.bind('contextmenu', function (e) {
             e.preventDefault();
             e.stopPropagation();
-            _this.showContextMenu(elem, e.clientX, e.clientY);
+            _this.showContextMenu(elem, new XYPosition(e.clientX, e.clientY));
+        });
+        elem.focusin(function (e) {
+            _this.showToolbar(elem);
+            e.preventDefault();
         });
     };
-    RichContentBaseEditor.prototype.showContextMenu = function (elem, left, top) {
+    RichContentBaseEditor.prototype.showContextMenu = function (elem, buttonOrPosition) {
         var _this = this;
         this.RichContentEditorInstance.CloseAllMenus();
         var menu = $('<div class="rce-menu"></ul>');
@@ -87,8 +120,31 @@ var RichContentBaseEditor = /** @class */ (function () {
         var deleteItem = $("<button type=\"button\" href=\"javascript:\" class=\"rce-menu-item\"><i class=\"rce-menu-icon fas fa-trash\"></i> <span>" + _this.RichContentEditorInstance.Locale.Delete + "</span></button>");
         deleteItem.click(function () { _this.OnDelete(elem), menu.remove(); });
         menu.append(deleteItem);
-        menu.css({ left: left, top: top });
-        $('body').append(menu);
+        Utils.ShowMenu(menu, buttonOrPosition);
+    };
+    RichContentBaseEditor.prototype.showToolbar = function (elem) {
+        var commands = this.GetToolbarCommands(elem);
+        if (commands !== null) {
+            var toolbar_1 = elem.find('.rce-toolbar');
+            // close all other toolbars
+            $('.rce-toolbar').not(toolbar_1).remove();
+            if (!toolbar_1.length) {
+                toolbar_1 = $('<div class="rce-toolbar"></ul>');
+                var _loop_2 = function (i) {
+                    var command = commands[i];
+                    var item = $("<button type=\"button\" class=\"rce-button rce-toolbar-item\" title=\"" + command.Label + "\"><i class=\"rce-toolbar-icon " + command.IconClasses + "\"></i></button>");
+                    item.click(function (e) {
+                        e.preventDefault();
+                        command.OnClick(elem);
+                    });
+                    toolbar_1.append(item);
+                };
+                for (var i = 0; i < commands.length; i++) {
+                    _loop_2(i);
+                }
+                elem.prepend(toolbar_1);
+            }
+        }
     };
     RichContentBaseEditor.prototype.OnDelete = function (elem) {
         elem.remove();
@@ -389,7 +445,7 @@ var RichContentEditor = /** @class */ (function () {
         });
         $(gridSelector + ' .add-button').click(function () {
             _this.CloseAllMenus();
-            _this.showAddMenu($(this).offset().left, $(this).offset().top);
+            _this.showAddMenu($(this));
         });
         var grid = $(gridSelector + ' .rce-grid');
         if (window.Sortable) {
@@ -413,7 +469,7 @@ var RichContentEditor = /** @class */ (function () {
             e.preventDefault();
             e.stopPropagation();
             _this.CloseAllMenus();
-            _this.showAddMenu(e.clientX, e.clientY);
+            _this.showAddMenu(new XYPosition(e.clientX, e.clientY));
         });
         this.instantiateEditors(options.Editors);
         return this;
@@ -456,7 +512,7 @@ var RichContentEditor = /** @class */ (function () {
     };
     RichContentEditor.prototype.cleanElement = function (elem) {
         var _this = this;
-        if (elem.hasClass('rce-menu-button')) {
+        if (elem.hasClass('rce-menu-button') || elem.hasClass('rce-toolbar')) {
             elem.remove();
         }
         else if (elem.hasClass('rce-editor-wrapper') && !elem.hasClass('rce-editor-wrapper-keep')) {
@@ -515,9 +571,9 @@ var RichContentEditor = /** @class */ (function () {
     RichContentEditor.prototype.CloseAllMenus = function () {
         $('.rce-menu').remove();
     };
-    RichContentEditor.prototype.showAddMenu = function (left, top) {
+    RichContentEditor.prototype.showAddMenu = function (button) {
         var _this = this;
-        var menu = $('<div class="rce-menu"></ul>');
+        var menu = $('<div class="rce-menu"></div>');
         var _loop_1 = function (i) {
             var editor = this_1.RegisteredEditors[i];
             var item = $("<button type=\"button\" class=\"rce-menu-item\"><i class=\"rce-menu-icon " + editor.GetMenuIconClasses() + "\"></i> <span class=\"rce-menu-label\">" + editor.GetMenuLabel() + "</span></button>");
@@ -528,8 +584,7 @@ var RichContentEditor = /** @class */ (function () {
         for (var i = 0; i < this.RegisteredEditors.length; i++) {
             _loop_1(i);
         }
-        menu.css({ left: left, top: top });
-        $('body').append(menu);
+        Utils.ShowMenu(menu, button);
     };
     RichContentEditor._localeRegistrations = {};
     return RichContentEditor;
@@ -628,7 +683,7 @@ var HtmlTemplates = /** @class */ (function () {
     function HtmlTemplates() {
     }
     HtmlTemplates.GetMainEditorTemplate = function (id) {
-        return "\n            <div id=\"" + id + "\" class=\"rce-grid-wrapper edit-mode\">\n                <div class=\"rce-grid\">\n                    <a class=\"rce-button rce-button-flat rce-menu-button add-button\"><i class=\"fas fa-plus-circle\"></i></a>\n                </div>\n\n                <div class=\"rce-editor-top-icons\">\n                    <button type=\"button\" class=\"rce-button rce-button-toolbar rce-editor-save\"><i class=\"fas fa-save\"></i></button>\n                    <button type=\"button\" class=\"rce-button rce-button-toolbar rce-editor-preview\"><i class=\"fas fa-eye\"></i></button>\n                    <button type=\"button\" class=\"rce-button rce-button-toolbar rce-editor-preview-lock\"><i class=\"fas fa-lock-open\"></i></button>\n                    <button type=\"button\" class=\"rce-button rce-button-toolbar rce-editor-preview-unlock rce-hide\"><i class=\"fas fa-lock\"></i></button>\n                </div>\n            </div>";
+        return "\n            <div id=\"" + id + "\" class=\"rce-grid-wrapper edit-mode\">\n                <div class=\"rce-grid\">\n                    <a class=\"rce-button rce-button-flat rce-menu-button add-button\"><i class=\"fas fa-plus-circle\"></i></a>\n                </div>\n\n                <div class=\"rce-editor-top-icons\">\n                    <button type=\"button\" class=\"rce-button rce-button-toolbar rce-editor-preview\"><i class=\"fas fa-eye\"></i></button>\n                    <button type=\"button\" class=\"rce-button rce-button-toolbar rce-editor-preview-lock\"><i class=\"fas fa-lock-open\"></i></button>\n                    <button type=\"button\" class=\"rce-button rce-button-toolbar rce-editor-preview-unlock rce-hide\"><i class=\"fas fa-lock\"></i></button>\n                    <button type=\"button\" class=\"rce-button rce-button-toolbar rce-editor-save\"><i class=\"fas fa-save\"></i></button>\n                </div>\n            </div>";
     };
     return HtmlTemplates;
 }());
@@ -682,6 +737,19 @@ var RichContentTextEditor = /** @class */ (function (_super) {
             selection.deleteFromDocument();
             selection.getRangeAt(0).insertNode(document.createTextNode(text));
         };
+        textArea.focusin(function (e) {
+            if (textArea.data('selection')) {
+                var sel = window.rangy.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(textArea.data('selection'));
+                textArea.data('selection', null);
+            }
+        });
+        document.addEventListener('selectionchange', function () {
+            if ($(document.activeElement).hasClass('rce-textarea-editor')) {
+                $(document.activeElement).data('selection', window.rangy.getSelection().getRangeAt(0));
+            }
+        });
     };
     RichContentTextEditor.prototype.GetMenuLabel = function () {
         return this._locale.MenuLabel;
@@ -722,6 +790,9 @@ var RichContentTextEditor = /** @class */ (function (_super) {
             document.execCommand('insertOrderedList', false, null);
         });
         return [boldCommand, italicCommand, ulCommand, olCommand];
+    };
+    RichContentTextEditor.prototype.GetToolbarCommands = function (elem) {
+        return this.GetContextCommands(elem);
     };
     RichContentTextEditor._localeRegistrations = {};
     return RichContentTextEditor;
@@ -1202,6 +1273,10 @@ FileManager.RegisterLocale(FileManagerLocale, 'EN');
 var RichContentEditorLocale = /** @class */ (function () {
     function RichContentEditorLocale() {
         this.Delete = "Delete";
+        this.DeviceMenuMobile = "Mobile";
+        this.DeviceMenuMobileLandscape = "Mobile Landscape";
+        this.DeviceMenuTablet = "Tablet";
+        this.DeviceMenuDesktop = "Desktop";
     }
     return RichContentEditorLocale;
 }());

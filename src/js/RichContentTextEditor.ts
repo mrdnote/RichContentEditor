@@ -48,6 +48,26 @@
             selection.deleteFromDocument();
             selection.getRangeAt(0).insertNode(document.createTextNode(text));
         }
+
+        textArea.focusin(function (e)
+        {
+            if (textArea.data('selection'))
+            {
+                var sel = (window as any).rangy.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(textArea.data('selection'));
+                textArea.data('selection', null);
+            }
+        });
+
+
+        document.addEventListener('selectionchange', function ()
+        {
+            if ($(document.activeElement).hasClass('rce-textarea-editor'))
+            {
+                $(document.activeElement).data('selection', (window as any).rangy.getSelection().getRangeAt(0));
+            }
+        });
     }
 
     public GetMenuLabel(): string
@@ -109,6 +129,11 @@
         });
 
         return [boldCommand, italicCommand, ulCommand, olCommand];
+    }
+
+    public GetToolbarCommands(elem: JQuery<HTMLElement>): ContextCommand[]
+    {
+        return this.GetContextCommands(elem);
     }
 }
 
