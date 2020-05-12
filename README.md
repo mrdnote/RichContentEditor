@@ -15,8 +15,15 @@ Download the repository archive, unzip it and add the css and javascript from th
     <body>
     
       <!-- your content -->
+    
+      <!-- SortableJS makes it possible to sort elements in the editor. Optional. -->  
+      <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.10.2/Sortable.min.js"></script>
+
+      <!-- Crossbrowser support for editor range selections -->
+      <script src="https://cdn.jsdelivr.net/npm/rangy@1.3.0/lib/rangy-core.js"></script>
       
-        <script src="../dist/js/RichContentEditor.js"></script>
+      <!-- The main library file -->
+      <script src="../dist/js/RichContentEditor.js"></script>
     </body>
   </html>
 ```
@@ -38,10 +45,7 @@ And load the editor into it by creating a <code>RichContentEditor</code> instanc
 
 Check out the html in the <code>example</code> directory for a complete example of how to use the RichContentEditor library.
 
-<h2>Sorting</h2>
+<h2>Credits</h2>
 
-The library supports integration of the <a href="https://github.com/SortableJS/Sortable" target="_blank">SortableJs</a> project. To enable sorting, include it in your html:
-
-```html
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.10.2/Sortable.min.js"></script>
-```
+The library uses <a href="https://github.com/SortableJS/Sortable" target="_blank">SortableJs</a> to enable sorting.<br/>
+The library uses <a href="https://github.com/timdown/rangy" target="_blank">rangy</a> to implement selection ranges of content in the editor.<br/>
