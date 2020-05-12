@@ -3,6 +3,12 @@
     margin-top: 40px;
 }
 
+.rce-grid-wrapper:after {
+    content: '';
+    clear: both;
+    display: block;
+}
+
 .rce-grid-wrapper.edit-mode .rce-grid {
     border: solid 1px silver;
     border-radius: 5px;

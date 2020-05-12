@@ -418,6 +418,7 @@ class RichContentEditor
         $(gridSelector + ' .rce-editor-preview').mousedown(function ()
         {
             $(gridSelector).removeClass('edit-mode');
+            _this.CloseAllToolbars();
         });
 
         $(gridSelector + ' .rce-editor-preview').mouseup(function ()
@@ -441,6 +442,7 @@ class RichContentEditor
             $(gridSelector + ' .rce-editor-preview-lock').addClass('rce-hide');
             $(gridSelector + ' .rce-editor-preview-unlock').removeClass('rce-hide');
             $(gridSelector).removeClass('edit-mode');
+            _this.CloseAllToolbars();
         });
 
         $(gridSelector + ' .rce-editor-preview-unlock').click(function ()
@@ -469,8 +471,16 @@ class RichContentEditor
         $(document).click(function (e)
         {
             const target = $(e.target);
+
+            // Close all open menus if clicking outside of a menu button
             if (!target.hasClass('rce-menu-button') && target.closest('.rce-menu,.rce-menu-button').length === 0)
                 _this.CloseAllMenus();
+
+            // When clicking outside of editor, close toolbars too
+            if (target.closest('.rce-grid-wrapper').length === 0)
+            {
+                _this.CloseAllToolbars();
+            }
         });
 
         $(document).keydown(function (e)
@@ -636,6 +646,11 @@ class RichContentEditor
     public CloseAllMenus()
     {
         $('.rce-menu').remove();
+    }
+
+    public CloseAllToolbars()
+    {
+        $('.rce-toolbar').remove();
     }
 
     private showAddMenu(button: JQuery<HTMLElement> | XYPosition)

@@ -83,8 +83,10 @@ class Editor
     private instantiateMainEditor(options: RichContentEditorOptions)
     {
         const editor = new RichContentEditor().Init('RichContentEditorCanvas', options);
+        const imageEditor = editor.GetEditor('RichContentImageEditor') as RichContentImageEditor;
+        imageEditor.InsertImage('https://dnoteweb.blob.core.windows.net:443/editor-uploads/Dnote%20Logo%20400px.png', ImageAlignment.Right);
         const textEditor = editor.GetEditor('RichContentTextEditor') as RichContentTextEditor;
-        textEditor.InsertContent('<b>Welcome to DNote\'s HTML Editor.</b><div>Start by clicking the "plus"-icon below...</div >');
+        textEditor.InsertContent('<b>Welcome to DNote\'s HTML Editor.</b><div>Start by clicking the "plus"-icon below...</div>');
         return editor;
     }
 }

@@ -27,12 +27,18 @@
         if (!html) html = '';
 
         const textArea = $(`<div class="rce-textarea-editor" contenteditable="true">${html}</div>`);
+
+        if (textArea.find('script,table,img,form').length)
+        {
+            throw 'It is not allowed to insert content containing the following tags: script, table, img, form';
+        }
+
         const textAreaWrapper = $('<div class="rce-textarea-wrapper"></div>');
         textAreaWrapper.append(textArea);
 
         if (!targetElement)
         {
-            targetElement = $('.rce-grid', this.RichContentEditorInstance.GridSelector);
+            targetElement = $(`#${this.RichContentEditorInstance.EditorId} .rce-grid`);
         }
 
         this.Attach(textAreaWrapper, targetElement);

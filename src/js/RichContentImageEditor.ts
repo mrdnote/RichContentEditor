@@ -4,6 +4,11 @@
     uri: string;
 }
 
+enum ImageAlignment
+{
+    Fill, Left, Right
+}
+
 class RichContentImageEditor extends RichContentBaseEditor
 {
     private _appendElement: JQuery<HTMLElement>;
@@ -34,18 +39,35 @@ class RichContentImageEditor extends RichContentBaseEditor
         this._appendElement = targetElement;
 
         this.RichContentEditorInstance.FileManager.ShowFileSelectionDialog(
-            (url) => { this.onSelect(url); return true; }
+            (url) => { this.InsertImage(url, ImageAlignment.Fill, this._appendElement); return true; }
         );
     }
 
-    private onSelect(url: string)
+    public InsertImage(url: string, alignment: ImageAlignment, targetElement?: JQuery<HTMLElement>)
     {
         const img = $('<img class="rce-image"></img>');
         img.attr('src', url);
-        const imgWrapper = $('<div class="rce-image-wrapper rce-image-block"></div>');
+        const imgWrapper = $('<div class="rce-image-wrapper"></div>');
+        imgWrapper.addClass(this.getImageAlignmentClass(alignment));
         imgWrapper.append(img);
 
-        this.Attach(imgWrapper, this._appendElement);
+        if (!targetElement)
+        {
+            targetElement = $(`#${this.RichContentEditorInstance.EditorId} .rce-grid`);
+        }
+
+        this.Attach(imgWrapper, targetElement);
+    }
+
+    private getImageAlignmentClass(alignment: ImageAlignment): string
+    {
+        switch (alignment)
+        {
+            case ImageAlignment.Left: return 'rce-image-left';
+            case ImageAlignment.Right: return 'rce-image-right';
+            case ImageAlignment.Fill: return 'rce-image-block';
+            default: throw `Unexpected alignment value: ${alignment}`;
+        }
     }
 
     public GetMenuLabel(): string

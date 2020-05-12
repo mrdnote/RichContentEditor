@@ -421,6 +421,7 @@ var RichContentEditor = /** @class */ (function () {
         $(gridSelector).replaceWith(editorElement);
         $(gridSelector + ' .rce-editor-preview').mousedown(function () {
             $(gridSelector).removeClass('edit-mode');
+            _this.CloseAllToolbars();
         });
         $(gridSelector + ' .rce-editor-preview').mouseup(function () {
             $(gridSelector).addClass('edit-mode');
@@ -436,6 +437,7 @@ var RichContentEditor = /** @class */ (function () {
             $(gridSelector + ' .rce-editor-preview-lock').addClass('rce-hide');
             $(gridSelector + ' .rce-editor-preview-unlock').removeClass('rce-hide');
             $(gridSelector).removeClass('edit-mode');
+            _this.CloseAllToolbars();
         });
         $(gridSelector + ' .rce-editor-preview-unlock').click(function () {
             $(gridSelector + ' .rce-editor-preview').removeAttr('disabled');
@@ -455,8 +457,13 @@ var RichContentEditor = /** @class */ (function () {
         }
         $(document).click(function (e) {
             var target = $(e.target);
+            // Close all open menus if clicking outside of a menu button
             if (!target.hasClass('rce-menu-button') && target.closest('.rce-menu,.rce-menu-button').length === 0)
                 _this.CloseAllMenus();
+            // When clicking outside of editor, close toolbars too
+            if (target.closest('.rce-grid-wrapper').length === 0) {
+                _this.CloseAllToolbars();
+            }
         });
         $(document).keydown(function (e) {
             if (e.keyCode === 27)
@@ -570,6 +577,9 @@ var RichContentEditor = /** @class */ (function () {
     };
     RichContentEditor.prototype.CloseAllMenus = function () {
         $('.rce-menu').remove();
+    };
+    RichContentEditor.prototype.CloseAllToolbars = function () {
+        $('.rce-toolbar').remove();
     };
     RichContentEditor.prototype.showAddMenu = function (button) {
         var _this = this;
@@ -721,10 +731,13 @@ var RichContentTextEditor = /** @class */ (function (_super) {
         if (!html)
             html = '';
         var textArea = $("<div class=\"rce-textarea-editor\" contenteditable=\"true\">" + html + "</div>");
+        if (textArea.find('script,table,img,form').length) {
+            throw 'It is not allowed to insert content containing the following tags: script, table, img, form';
+        }
         var textAreaWrapper = $('<div class="rce-textarea-wrapper"></div>');
         textAreaWrapper.append(textArea);
         if (!targetElement) {
-            targetElement = $('.rce-grid', this.RichContentEditorInstance.GridSelector);
+            targetElement = $("#" + this.RichContentEditorInstance.EditorId + " .rce-grid");
         }
         this.Attach(textAreaWrapper, targetElement);
         textAreaWrapper.find('.rce-textarea-editor').focus();
@@ -812,6 +825,12 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var ImageAlignment;
+(function (ImageAlignment) {
+    ImageAlignment[ImageAlignment["Fill"] = 0] = "Fill";
+    ImageAlignment[ImageAlignment["Left"] = 1] = "Left";
+    ImageAlignment[ImageAlignment["Right"] = 2] = "Right";
+})(ImageAlignment || (ImageAlignment = {}));
 var RichContentImageEditor = /** @class */ (function (_super) {
     __extends(RichContentImageEditor, _super);
     function RichContentImageEditor() {
@@ -831,14 +850,26 @@ var RichContentImageEditor = /** @class */ (function (_super) {
             targetElement = $('.rce-grid', this.RichContentEditorInstance.GridSelector);
         }
         this._appendElement = targetElement;
-        this.RichContentEditorInstance.FileManager.ShowFileSelectionDialog(function (url) { _this.onSelect(url); return true; });
+        this.RichContentEditorInstance.FileManager.ShowFileSelectionDialog(function (url) { _this.InsertImage(url, ImageAlignment.Fill, _this._appendElement); return true; });
     };
-    RichContentImageEditor.prototype.onSelect = function (url) {
+    RichContentImageEditor.prototype.InsertImage = function (url, alignment, targetElement) {
         var img = $('<img class="rce-image"></img>');
         img.attr('src', url);
-        var imgWrapper = $('<div class="rce-image-wrapper rce-image-block"></div>');
+        var imgWrapper = $('<div class="rce-image-wrapper"></div>');
+        imgWrapper.addClass(this.getImageAlignmentClass(alignment));
         imgWrapper.append(img);
-        this.Attach(imgWrapper, this._appendElement);
+        if (!targetElement) {
+            targetElement = $("#" + this.RichContentEditorInstance.EditorId + " .rce-grid");
+        }
+        this.Attach(imgWrapper, targetElement);
+    };
+    RichContentImageEditor.prototype.getImageAlignmentClass = function (alignment) {
+        switch (alignment) {
+            case ImageAlignment.Left: return 'rce-image-left';
+            case ImageAlignment.Right: return 'rce-image-right';
+            case ImageAlignment.Fill: return 'rce-image-block';
+            default: throw "Unexpected alignment value: " + alignment;
+        }
     };
     RichContentImageEditor.prototype.GetMenuLabel = function () {
         return this._locale.MenuLabel;
