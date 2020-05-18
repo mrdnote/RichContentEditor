@@ -64,13 +64,17 @@
 
     private addTableRow(table: JQuery<HTMLElement>)
     {
-        const _this = this;
-        const rowClass = _this.RichContentEditorInstance.GridFramework.GetRowClass();
+        const rowClass = this.RichContentEditorInstance.GridFramework.GetRowClass();
         const row = $(`<div class="${rowClass}"></div>`);
-        _this.addTableColumn(row);
+        this.addTableColumn(row);
         table.append(row);
-        _this.SetupEditor(row, true);
+        this.SetupEditor(row, true);
 
+        this.attachRow(row);
+    }
+
+    private attachRow(row: JQuery<HTMLElement>)
+    {
         if ((window as any).Sortable)
         {
             (window as any).Sortable.create(row[0], {
@@ -107,16 +111,21 @@
         const col = $(`<div class="${colClass}"></div>`);
         col.append(inner);
 
+        this.attachColumn(col);
+
+        col.appendTo(row);
+        this.SetupEditor(col, true);
+    }
+
+    private attachColumn(col: JQuery<HTMLElement>)
+    {
         if ((window as any).Sortable)
         {
-            (window as any).Sortable.create(inner[0], {
+            (window as any).Sortable.create(col.find('.inner')[0], {
                 group: 'column-content',
                 draggable: '.rce-editor-wrapper'
             });
         }
-
-        col.appendTo(row);
-        this.SetupEditor(col, true);
     }
 
     private getTableColumnWidth(col: JQuery<HTMLElement>, size: string, exact: boolean): number
@@ -146,6 +155,68 @@
         else
         {
             return 0;
+        }
+    }
+
+    public GetDetectionSelectors(): string
+    {
+        return '.row,.col';
+    }
+
+    public Import(targetElement: JQuery<HTMLElement>, source: JQuery<HTMLElement>)
+    {
+        const _this = this;
+
+        if (source.is('.row') && source.closest('.rce-table').length === 0)
+        {
+            var table = $('<div class="rce-table"></div>');
+            var rows = source.parent().find('.row').clone();
+            rows.addClass(['rce-editor-wrapper', 'rce-editor-wrapper-keep']);
+            var cols = rows.find('.col');
+            cols.addClass(['rce-editor-wrapper', 'rce-editor-wrapper-keep']);
+            table.append(rows);
+            rows.each(function ()
+            {
+                _this.attachRow($(this));
+            });
+            cols.each(function ()
+            {
+                var inner = $('<div class="inner"></div>');
+                var contents = $(this).contents();
+                contents.each(function ()
+                {
+                    for (let i = 0; i < _this.RichContentEditorInstance.RegisteredEditors.length; i++)
+                    {
+                        var editor = _this.RichContentEditorInstance.RegisteredEditors[i];
+                        if (editor.AllowInTableCell)
+                        {
+                            let importEl;
+                            if (this.nodeType === 3)
+                            {
+                                importEl = $(`<div>${this.nodeValue}</div>`);
+                            }
+                            else
+                            {
+                                importEl = $(this) as JQuery<HTMLElement>;
+                            }
+                            editor.Import(inner, importEl);
+                        }
+                    }
+                });
+                //inner.append($(this).html());
+
+                $(this).empty();
+                $(this).append(inner);
+                _this.attachColumn($(this));
+            });
+            this.SetupEditor(rows, true);
+            this.SetupEditor(cols, true);
+            const tableWrapper = $('<div class="rce-table-wrapper"></div>');
+            tableWrapper.append(table);
+
+            source.replaceWith(tableWrapper);
+
+            this.Attach(tableWrapper, targetElement);
         }
     }
 

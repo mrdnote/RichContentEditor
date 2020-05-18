@@ -1,29 +1,4 @@
-var XYPosition = /** @class */ (function () {
-    function XYPosition(x, y) {
-        this.X = x;
-        this.Y = y;
-    }
-    return XYPosition;
-}());
-var Utils = /** @class */ (function () {
-    function Utils() {
-    }
-    Utils.ShowMenu = function (menu, buttonOrPosition) {
-        var xy;
-        if (buttonOrPosition instanceof XYPosition) {
-            xy = buttonOrPosition;
-        }
-        else {
-            var button = buttonOrPosition;
-            menu.data('origin', button);
-            xy = new XYPosition(button.offset().left, button.offset().top + button.height());
-        }
-        menu.css({ left: xy.X, top: xy.Y });
-        $('body').append(menu);
-    };
-    return Utils;
-}());
-//# sourceMappingURL=Utils.js.map
+
 var KeyValue = /** @class */ (function () {
     function KeyValue() {
     }
@@ -54,6 +29,12 @@ var RichContentBaseEditor = /** @class */ (function () {
     RichContentBaseEditor.prototype.Init = function (richContentEditor) {
         this.Name = this.constructor['name'];
         this.RichContentEditorInstance = richContentEditor;
+    };
+    RichContentBaseEditor.prototype.GetDetectionSelectors = function () {
+        return '';
+    };
+    RichContentBaseEditor.prototype.Import = function (_target, _source) {
+        throw new Error("Method not implemented.");
     };
     RichContentBaseEditor.prototype.GetMenuLabel = function () {
         throw new Error("GetMenuLabel() not implemented in " + this.constructor['name'] + "!");
@@ -120,7 +101,7 @@ var RichContentBaseEditor = /** @class */ (function () {
         var deleteItem = $("<button type=\"button\" href=\"javascript:\" class=\"rce-menu-item\"><i class=\"rce-menu-icon fas fa-trash\"></i> <span>" + _this.RichContentEditorInstance.Locale.Delete + "</span></button>");
         deleteItem.click(function () { _this.OnDelete(elem), menu.remove(); });
         menu.append(deleteItem);
-        Utils.ShowMenu(menu, buttonOrPosition);
+        RichContentUtils.ShowMenu(menu, buttonOrPosition);
     };
     RichContentBaseEditor.prototype.showToolbar = function (elem) {
         var commands = this.GetToolbarCommands(elem);
@@ -416,31 +397,33 @@ var RichContentEditor = /** @class */ (function () {
         this.GridFramework = GridFrameworkBase.Create(options.GridFramework);
         this.FileManager = new FileManager(this, options.Language);
         this.DialogManager = new DialogManager(this, options.Language);
+        this.instantiateEditors(options.Editors);
         var editorElement = $(HtmlTemplates.GetMainEditorTemplate(editorId));
         editorElement.data('orig', $(gridSelector));
+        this.import(editorElement, $(gridSelector));
         $(gridSelector).replaceWith(editorElement);
-        $(gridSelector + ' .rce-editor-preview').mousedown(function () {
-            $(gridSelector).removeClass('edit-mode');
-            _this.CloseAllToolbars();
+        var grid = $(gridSelector + ' .rce-grid');
+        grid.bind('contextmenu', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            _this.CloseAllMenus();
+            _this.showAddMenu(new XYPosition(e.clientX, e.clientY));
         });
-        $(gridSelector + ' .rce-editor-preview').mouseup(function () {
-            $(gridSelector).addClass('edit-mode');
-        });
-        $(gridSelector + ' .rce-editor-preview').mouseout(function () {
-            $(gridSelector).addClass('edit-mode');
-        });
+        if (window.Sortable) {
+            window.Sortable.create(grid[0], {
+                draggable: '.rce-editor-wrapper'
+            });
+        }
         $(gridSelector + ' .rce-editor-save').click(function () {
             _this.Save();
         });
         $(gridSelector + ' .rce-editor-preview-lock').click(function () {
-            $(gridSelector + ' .rce-editor-preview').attr('disabled', 'disabled');
             $(gridSelector + ' .rce-editor-preview-lock').addClass('rce-hide');
             $(gridSelector + ' .rce-editor-preview-unlock').removeClass('rce-hide');
             $(gridSelector).removeClass('edit-mode');
             _this.CloseAllToolbars();
         });
         $(gridSelector + ' .rce-editor-preview-unlock').click(function () {
-            $(gridSelector + ' .rce-editor-preview').removeAttr('disabled');
             $(gridSelector + ' .rce-editor-preview-lock').removeClass('rce-hide');
             $(gridSelector + ' .rce-editor-preview-unlock').addClass('rce-hide');
             $(gridSelector).addClass('edit-mode');
@@ -449,12 +432,6 @@ var RichContentEditor = /** @class */ (function () {
             _this.CloseAllMenus();
             _this.showAddMenu($(this));
         });
-        var grid = $(gridSelector + ' .rce-grid');
-        if (window.Sortable) {
-            window.Sortable.create(grid[0], {
-                draggable: '.rce-editor-wrapper'
-            });
-        }
         $(document).click(function (e) {
             var target = $(e.target);
             // Close all open menus if clicking outside of a menu button
@@ -472,14 +449,32 @@ var RichContentEditor = /** @class */ (function () {
         $(gridSelector + ' input.readonly').on('keydown paste cut', function (e) {
             e.preventDefault();
         });
-        grid.bind('contextmenu', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            _this.CloseAllMenus();
-            _this.showAddMenu(new XYPosition(e.clientX, e.clientY));
-        });
-        this.instantiateEditors(options.Editors);
         return this;
+    };
+    RichContentEditor.prototype.GetDetectionSelectors = function (editor) {
+        var result = 'table,form,script';
+        for (var i = 0; i < this.RegisteredEditors.length; i++) {
+            var otherEditor = this.RegisteredEditors[i];
+            if (otherEditor != editor) {
+                var otherSelectors = otherEditor.GetDetectionSelectors();
+                if (otherSelectors) {
+                    if (result !== '')
+                        result += ',';
+                    result += otherSelectors;
+                }
+            }
+        }
+        return result;
+    };
+    RichContentEditor.prototype.import = function (target, source) {
+        var _this = this;
+        var elements = source.children();
+        elements.each(function () {
+            for (var i = 0; i < _this.RegisteredEditors.length; i++) {
+                var editor = _this.RegisteredEditors[i];
+                editor.Import(target, $(this));
+            }
+        });
     };
     RichContentEditor.prototype.Delete = function () {
         var editor = $('#' + this.EditorId);
@@ -594,7 +589,7 @@ var RichContentEditor = /** @class */ (function () {
         for (var i = 0; i < this.RegisteredEditors.length; i++) {
             _loop_1(i);
         }
-        Utils.ShowMenu(menu, button);
+        RichContentUtils.ShowMenu(menu, button);
     };
     RichContentEditor._localeRegistrations = {};
     return RichContentEditor;
@@ -693,7 +688,7 @@ var HtmlTemplates = /** @class */ (function () {
     function HtmlTemplates() {
     }
     HtmlTemplates.GetMainEditorTemplate = function (id) {
-        return "\n            <div id=\"" + id + "\" class=\"rce-grid-wrapper edit-mode\">\n                <div class=\"rce-grid\">\n                    <a class=\"rce-button rce-button-flat rce-menu-button add-button\"><i class=\"fas fa-plus-circle\"></i></a>\n                </div>\n\n                <div class=\"rce-editor-top-icons\">\n                    <button type=\"button\" class=\"rce-button rce-button-toolbar rce-editor-preview\"><i class=\"fas fa-eye\"></i></button>\n                    <button type=\"button\" class=\"rce-button rce-button-toolbar rce-editor-preview-lock\"><i class=\"fas fa-lock-open\"></i></button>\n                    <button type=\"button\" class=\"rce-button rce-button-toolbar rce-editor-preview-unlock rce-hide\"><i class=\"fas fa-lock\"></i></button>\n                    <button type=\"button\" class=\"rce-button rce-button-toolbar rce-editor-save\"><i class=\"fas fa-save\"></i></button>\n                </div>\n            </div>";
+        return "\n            <div id=\"" + id + "\" class=\"rce-grid-wrapper edit-mode\">\n                <div class=\"rce-grid\">\n                    <a class=\"rce-button rce-button-flat rce-menu-button add-button\"><i class=\"fas fa-plus-circle\"></i></a>\n                </div>\n\n                <div class=\"rce-editor-top-icons\">\n                    <button type=\"button\" class=\"rce-button rce-button-toolbar rce-editor-preview-lock\"><i class=\"fas fa-eye\"></i></button>\n                    <button type=\"button\" class=\"rce-button rce-button-toolbar rce-editor-preview-unlock rce-hide\"><i class=\"fas fa-eye-slash\"></i></button>\n                    <button type=\"button\" class=\"rce-button rce-button-toolbar rce-editor-save\"><i class=\"fas fa-save\"></i></button>\n                </div>\n            </div>";
     };
     return HtmlTemplates;
 }());
@@ -764,6 +759,25 @@ var RichContentTextEditor = /** @class */ (function (_super) {
             }
         });
     };
+    RichContentTextEditor.prototype.Import = function (targetElement, source) {
+        var detectionSelectors = this.RichContentEditorInstance.GetDetectionSelectors(this);
+        if (!source.is(detectionSelectors) && source.find(detectionSelectors).length === 0) {
+            var clone = source.clone();
+            var textArea = null;
+            if (clone.is('div')) {
+                textArea = clone;
+                textArea.attr('contenteditable', true);
+                textArea.addClass('rce-textarea-editor');
+            }
+            else {
+                textArea = $("<div class=\"rce-textarea-editor\" contenteditable=\"true\">" + clone.html() + "</div>");
+            }
+            var textAreaWrapper = $('<div class="rce-textarea-wrapper"></div>');
+            textAreaWrapper.append(textArea);
+            source.replaceWith(textAreaWrapper.append(clone));
+            this.Attach(textAreaWrapper, targetElement);
+        }
+    };
     RichContentTextEditor.prototype.GetMenuLabel = function () {
         return this._locale.MenuLabel;
     };
@@ -825,6 +839,144 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var RichContentHeadingEditor = /** @class */ (function (_super) {
+    __extends(RichContentHeadingEditor, _super);
+    function RichContentHeadingEditor() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    RichContentHeadingEditor.RegisterLocale = function (localeType, language) {
+        this._localeRegistrations[language] = localeType;
+    };
+    RichContentHeadingEditor.prototype.Init = function (richContentEditor) {
+        _super.prototype.Init.call(this, richContentEditor);
+        this._locale = new RichContentHeadingEditor._localeRegistrations[richContentEditor.Options.Language]();
+    };
+    RichContentHeadingEditor.prototype.Insert = function (targetElement) {
+        this.InsertContent(null, targetElement);
+    };
+    RichContentHeadingEditor.prototype.InsertContent = function (html, targetElement) {
+        _super.prototype.Insert.call(this, targetElement);
+        if (!html)
+            html = '';
+        var textArea = $("<div class=\"rce-heading-editor\" contenteditable=\"true\">" + html + "</div>");
+        if (textArea.find('script,table,img,form').length) {
+            throw 'It is not allowed to insert content containing the following tags: script, table, img, form';
+        }
+        var textAreaWrapper = $('<div class="rce-heading-wrapper"></div>');
+        textAreaWrapper.append(textArea);
+        if (!targetElement) {
+            targetElement = $("#" + this.RichContentEditorInstance.EditorId + " .rce-grid");
+        }
+        this.Attach(textAreaWrapper, targetElement);
+        textAreaWrapper.find('.rce-heading-editor').focus();
+        textArea[0].onpaste = function (e) {
+            e.preventDefault();
+            var text = e.clipboardData.getData('text/plain');
+            var selection = window.getSelection();
+            if (!selection.rangeCount)
+                return false;
+            selection.deleteFromDocument();
+            selection.getRangeAt(0).insertNode(document.createTextNode(text));
+        };
+        textArea.focusin(function (e) {
+            if (textArea.data('selection')) {
+                var sel = window.rangy.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(textArea.data('selection'));
+                textArea.data('selection', null);
+            }
+        });
+        document.addEventListener('selectionchange', function () {
+            if ($(document.activeElement).hasClass('rce-heading-editor')) {
+                $(document.activeElement).data('selection', window.rangy.getSelection().getRangeAt(0));
+            }
+        });
+    };
+    RichContentHeadingEditor.prototype.GetDetectionSelectors = function () {
+        return 'h1,h2,h3,h4,h5,h6';
+    };
+    RichContentHeadingEditor.prototype.Import = function (targetElement, source) {
+        if (source.is('h1,h2,h3,h4,h5,h6')) {
+            var clone = source.clone();
+            clone.attr('contenteditable', 'true');
+            clone.addClass('rce-heading-editor');
+            var headingWrapper = $('<div class="rce-heading-wrapper"></div>');
+            headingWrapper.append(clone);
+            source.replaceWith(headingWrapper.append(clone));
+            this.Attach(headingWrapper, targetElement);
+        }
+    };
+    RichContentHeadingEditor.prototype.GetMenuLabel = function () {
+        return this._locale.MenuLabel;
+    };
+    RichContentHeadingEditor.prototype.GetMenuIconClasses = function () {
+        return 'fas fa-heading';
+    };
+    RichContentHeadingEditor.prototype.AllowInTableCell = function () {
+        return true;
+    };
+    RichContentHeadingEditor.prototype.Clean = function (elem) {
+        elem.removeClass('rce-heading-editor');
+        if (elem.attr('class') === '')
+            elem.removeAttr('class');
+        elem.removeAttr('contenteditable');
+        _super.prototype.Clean.call(this, elem);
+    };
+    RichContentHeadingEditor.prototype.GetContextButtonText = function (_elem) {
+        return 'H';
+    };
+    RichContentHeadingEditor.prototype.GetContextCommands = function (_elem) {
+        var _this = this;
+        var gridSelector = this.RichContentEditorInstance.GridSelector;
+        var sizeCommand = new ContextCommand(this._locale.Size, 'fas fa-text-height', function (elem) {
+            var dialog = _this.getSizeDialog();
+            var currentSize = parseInt(elem.find('h1,h2,h3,h4,h5,h6')[0].tagName.substring(1, 2));
+            $('input.rce-size-input', dialog).val(currentSize);
+            _this.RichContentEditorInstance.GridFramework.UpdateFields();
+            dialog.data('elem', elem);
+            _this.RichContentEditorInstance.DialogManager.ShowDialog(dialog, function (dialog) {
+                var valid = _this.RichContentEditorInstance.DialogManager.ValidateFields(gridSelector, $('input', dialog));
+                if (!valid)
+                    return;
+                var newSize = $('input.rce-size-input', dialog).val();
+                var oldHeading = elem.find('h1,h2,h3,h4,h5,h6').first();
+                var newHeading = $("<h" + newSize + " contenteditable=\"true\" class=\"rce-heading-editor\">" + oldHeading[0].innerHTML + "</h" + newSize + ">");
+                oldHeading.first().replaceWith(newHeading);
+                _this.RichContentEditorInstance.DialogManager.CloseDialog($(gridSelector + ' .column-width-dialog'));
+                return true;
+            });
+        });
+        return [sizeCommand];
+    };
+    RichContentHeadingEditor.prototype.getSizeDialog = function () {
+        var dialog = $('#' + this.RichContentEditorInstance.EditorId + ' .heading-size-dialog');
+        if (!dialog.length) {
+            dialog = $(this.getSizeDialogHtml(this.RichContentEditorInstance.EditorId));
+            dialog.appendTo($('#' + this.RichContentEditorInstance.EditorId));
+        }
+        return dialog;
+    };
+    RichContentHeadingEditor.prototype.getSizeDialogHtml = function (id) {
+        return "\n            <div class=\"rce-dialog column-width-dialog\">\n                <div class=\"rce-dialog-content\">\n                    <div class=\"rce-dialog-title\">" + this._locale.ColumnSizeDialogTitle + "</div>\n                    <div class=\"rce-form-field rce-form-field-inline\">\n                        <label for=\"" + id + "_Size\" class=\"rce-label\">" + this._locale.SizeLabel + "</label>\n                        <input id=\"" + id + "_Size\" class=\"validate rce-input rce-size-input browser-default\" type=\"number\" required=\"required\" min=\"1\" max=\"6\" />\n                        <span class=\"rce-error-text\">" + this._locale.ValidateSizeMessage + "</span>\n                    </div>\n                </div>\n                <div class=\"rce-dialog-footer\">\n                    <a href=\"javascript:\" class=\"rce-button rce-button-flat rce-close-dialog\">" + this.RichContentEditorInstance.DialogManager.Locale.DialogCancelButton + "</a>\n                    <a href=\"javascript:\" class=\"rce-button rce-submit-dialog\">" + this.RichContentEditorInstance.DialogManager.Locale.DialogSaveButton + "</a>\n                </div>\n            </div>";
+    };
+    RichContentHeadingEditor._localeRegistrations = {};
+    return RichContentHeadingEditor;
+}(RichContentBaseEditor));
+RichContentBaseEditor.RegisterEditor(RichContentHeadingEditor);
+//# sourceMappingURL=RichContentHeadingEditor.js.map
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var ImageAlignment;
 (function (ImageAlignment) {
     ImageAlignment[ImageAlignment["Fill"] = 0] = "Fill";
@@ -869,6 +1021,26 @@ var RichContentImageEditor = /** @class */ (function (_super) {
             case ImageAlignment.Right: return 'rce-image-right';
             case ImageAlignment.Fill: return 'rce-image-block';
             default: throw "Unexpected alignment value: " + alignment;
+        }
+    };
+    RichContentImageEditor.prototype.GetDetectionSelectors = function () {
+        return 'img';
+    };
+    RichContentImageEditor.prototype.Import = function (targetElement, source) {
+        if (source.is('img')) {
+            var clone = source.clone();
+            clone.addClass('rce-image');
+            var imgWrapper = $('<div class="rce-image-wrapper"></div>');
+            var alignment = ImageAlignment.Fill;
+            if (clone.hasClass(this.RichContentEditorInstance.GridFramework.GetLeftAlignClass())) {
+                alignment = ImageAlignment.Left;
+            }
+            else if (clone.hasClass(this.RichContentEditorInstance.GridFramework.GetRightAlignClass())) {
+                alignment = ImageAlignment.Right;
+            }
+            imgWrapper.addClass(this.getImageAlignmentClass(alignment));
+            source.replaceWith(imgWrapper.append(clone));
+            this.Attach(imgWrapper, targetElement);
         }
     };
     RichContentImageEditor.prototype.GetMenuLabel = function () {
@@ -968,12 +1140,14 @@ var RichContentTableEditor = /** @class */ (function (_super) {
         _super.prototype.Clean.call(this, elem);
     };
     RichContentTableEditor.prototype.addTableRow = function (table) {
-        var _this = this;
-        var rowClass = _this.RichContentEditorInstance.GridFramework.GetRowClass();
+        var rowClass = this.RichContentEditorInstance.GridFramework.GetRowClass();
         var row = $("<div class=\"" + rowClass + "\"></div>");
-        _this.addTableColumn(row);
+        this.addTableColumn(row);
         table.append(row);
-        _this.SetupEditor(row, true);
+        this.SetupEditor(row, true);
+        this.attachRow(row);
+    };
+    RichContentTableEditor.prototype.attachRow = function (row) {
         if (window.Sortable) {
             window.Sortable.create(row[0], {
                 group: 'row-content',
@@ -1002,14 +1176,17 @@ var RichContentTableEditor = /** @class */ (function (_super) {
         var colClass = _this.RichContentEditorInstance.GridFramework.GetColumnClass(newWidth);
         var col = $("<div class=\"" + colClass + "\"></div>");
         col.append(inner);
+        this.attachColumn(col);
+        col.appendTo(row);
+        this.SetupEditor(col, true);
+    };
+    RichContentTableEditor.prototype.attachColumn = function (col) {
         if (window.Sortable) {
-            window.Sortable.create(inner[0], {
+            window.Sortable.create(col.find('.inner')[0], {
                 group: 'column-content',
                 draggable: '.rce-editor-wrapper'
             });
         }
-        col.appendTo(row);
-        this.SetupEditor(col, true);
     };
     RichContentTableEditor.prototype.getTableColumnWidth = function (col, size, exact) {
         var previousSize;
@@ -1031,6 +1208,52 @@ var RichContentTableEditor = /** @class */ (function (_super) {
         }
         else {
             return 0;
+        }
+    };
+    RichContentTableEditor.prototype.GetDetectionSelectors = function () {
+        return '.row,.col';
+    };
+    RichContentTableEditor.prototype.Import = function (targetElement, source) {
+        var _this = this;
+        if (source.is('.row') && source.closest('.rce-table').length === 0) {
+            var table = $('<div class="rce-table"></div>');
+            var rows = source.parent().find('.row').clone();
+            rows.addClass(['rce-editor-wrapper', 'rce-editor-wrapper-keep']);
+            var cols = rows.find('.col');
+            cols.addClass(['rce-editor-wrapper', 'rce-editor-wrapper-keep']);
+            table.append(rows);
+            rows.each(function () {
+                _this.attachRow($(this));
+            });
+            cols.each(function () {
+                var inner = $('<div class="inner"></div>');
+                var contents = $(this).contents();
+                contents.each(function () {
+                    for (var i = 0; i < _this.RichContentEditorInstance.RegisteredEditors.length; i++) {
+                        var editor = _this.RichContentEditorInstance.RegisteredEditors[i];
+                        if (editor.AllowInTableCell) {
+                            var importEl = void 0;
+                            if (this.nodeType === 3) {
+                                importEl = $("<div>" + this.nodeValue + "</div>");
+                            }
+                            else {
+                                importEl = $(this);
+                            }
+                            editor.Import(inner, importEl);
+                        }
+                    }
+                });
+                //inner.append($(this).html());
+                $(this).empty();
+                $(this).append(inner);
+                _this.attachColumn($(this));
+            });
+            this.SetupEditor(rows, true);
+            this.SetupEditor(cols, true);
+            var tableWrapper = $('<div class="rce-table-wrapper"></div>');
+            tableWrapper.append(table);
+            source.replaceWith(tableWrapper);
+            this.Attach(tableWrapper, targetElement);
         }
     };
     RichContentTableEditor.prototype.GetMenuLabel = function () {
@@ -1271,6 +1494,32 @@ var GridFrameworkMaterialize = /** @class */ (function (_super) {
 }(GridFrameworkBase));
 GridFrameworkBase.Register(GridFrameworkMaterialize);
 //# sourceMappingURL=GridFrameworkMaterialize.js.map
+var XYPosition = /** @class */ (function () {
+    function XYPosition(x, y) {
+        this.X = x;
+        this.Y = y;
+    }
+    return XYPosition;
+}());
+var RichContentUtils = /** @class */ (function () {
+    function RichContentUtils() {
+    }
+    RichContentUtils.ShowMenu = function (menu, buttonOrPosition) {
+        var xy;
+        if (buttonOrPosition instanceof XYPosition) {
+            xy = buttonOrPosition;
+        }
+        else {
+            var button = buttonOrPosition;
+            menu.data('origin', button);
+            xy = new XYPosition(button.offset().left, button.offset().top + button.height());
+        }
+        menu.css({ left: xy.X, top: xy.Y });
+        $('body').append(menu);
+    };
+    return RichContentUtils;
+}());
+//# sourceMappingURL=RichContentUtils.js.map
 var DialogManagerLocale = /** @class */ (function () {
     function DialogManagerLocale() {
         this.DialogSaveButton = "Save";
@@ -1353,3 +1602,15 @@ var RichContentTextEditorLocale = /** @class */ (function () {
 }());
 RichContentTextEditor.RegisterLocale(RichContentTextEditorLocale, 'EN');
 //# sourceMappingURL=RichContentTextEditorLocaleEN.js.map
+var RichContentHeadingEditorLocale = /** @class */ (function () {
+    function RichContentHeadingEditorLocale() {
+        this.MenuLabel = "Heading";
+        this.Size = "Size";
+        this.ColumnSizeDialogTitle = "Change Size";
+        this.ValidateSizeMessage = "Size must be between 1 and 6";
+        this.SizeLabel = "Size";
+    }
+    return RichContentHeadingEditorLocale;
+}());
+RichContentHeadingEditor.RegisterLocale(RichContentHeadingEditorLocale, 'EN');
+//# sourceMappingURL=RichContentHeadingEditorLocaleEN.js.map

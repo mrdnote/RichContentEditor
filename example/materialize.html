@@ -70,7 +70,16 @@
 
             <h2>D|Note HTML Editor Demo</h2>
 
-            <div id="RichContentEditorCanvas" style="height: 147px;">Loading...</div>
+            <div id="RichContentEditorCanvas" style="height: 147px;">
+                <img class="right" src="https://dnoteweb.blob.core.windows.net:443/editor-uploads/Dnote%20Logo%20400px.png" />
+                <h1>Welcome to DNote's HTML Editor</h1>
+                <div><b>Hi!</b><div>Start by clicking the "plus"-icon below...</div></div>
+                <div class="row">
+                    <div class="col s12 m12 l12 xl6">A table column...</div>
+                    <div class="col s12 m12 l12 xl6">Second column</div>
+                </div>
+            </div>
+
 
             <div class="features-table">
 
@@ -193,10 +202,11 @@ new RichContentEditor().Init('MyEditor', options);</pre>
     <!--<script src="../dist/js/RichContentEditor.js?ts=120520200225"></script>
     <script src="../dist/js/RichContentEditorNL.js?ts=120520200225"></script>-->
 
-    <script src="../src/js/Utils.js"></script>
+    <script src="../src/js/RichContentUtils.js"></script>
     <script src="../src/js/RichContentBaseEditor.js"></script>
     <script src="../src/js/RichContentEditor.js"></script>
     <script src="../src/js/RichContentTextEditor.js"></script>
+    <script src="../src/js/RichContentHeadingEditor.js"></script>
     <script src="../src/js/RichContentImageEditor.js"></script>
     <script src="../src/js/RichContentTableEditor.js"></script>
     <script src="../src/js/GridFrameworkBootstrap.js"></script>
@@ -207,12 +217,14 @@ new RichContentEditor().Init('MyEditor', options);</pre>
     <script src="../src/js/Locale/FileManagerLocaleNL.js"></script>
     <script src="../src/js/Locale/RichContentEditorLocaleEN.js"></script>
     <script src="../src/js/Locale/RichContentEditorLocaleNL.js"></script>
+    <script src="../src/js/Locale/RichContentTextEditorLocaleEN.js"></script>
+    <script src="../src/js/Locale/RichContentTextEditorLocaleNL.js"></script>
+    <script src="../src/js/Locale/RichContentHeadingEditorLocaleEN.js"></script>
+    <script src="../src/js/Locale/RichContentHeadingEditorLocaleNL.js"></script>
     <script src="../src/js/Locale/RichContentImageEditorLocaleEN.js"></script>
     <script src="../src/js/Locale/RichContentImageEditorLocaleNL.js"></script>
     <script src="../src/js/Locale/RichContentTableEditorLocaleEN.js"></script>
     <script src="../src/js/Locale/RichContentTableEditorLocaleNL.js"></script>
-    <script src="../src/js/Locale/RichContentTextEditorLocaleEN.js"></script>
-    <script src="../src/js/Locale/RichContentTextEditorLocaleNL.js"></script>
 
     <script src="js/Example.js"></script>
     <script>

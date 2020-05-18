@@ -70,6 +70,34 @@ class RichContentImageEditor extends RichContentBaseEditor
         }
     }
 
+    public GetDetectionSelectors(): string
+    {
+        return 'img';
+    }
+
+    public Import(targetElement: JQuery<HTMLElement>, source: JQuery<HTMLElement>)
+    {
+        if (source.is('img'))
+        {
+            let clone = source.clone();
+            clone.addClass('rce-image');
+            const imgWrapper = $('<div class="rce-image-wrapper"></div>');
+            let alignment = ImageAlignment.Fill;
+            if (clone.hasClass(this.RichContentEditorInstance.GridFramework.GetLeftAlignClass()))
+            {
+                alignment = ImageAlignment.Left;
+            }
+            else if (clone.hasClass(this.RichContentEditorInstance.GridFramework.GetRightAlignClass()))
+            {
+                alignment = ImageAlignment.Right;
+            }
+            imgWrapper.addClass(this.getImageAlignmentClass(alignment));
+            source.replaceWith(imgWrapper.append(clone));
+
+            this.Attach(imgWrapper, targetElement);
+        }
+    }
+
     public GetMenuLabel(): string
     {
         return this._locale.MenuLabel;

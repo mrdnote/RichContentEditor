@@ -10,7 +10,7 @@ class XYPosition
     public Y: number;
 }
 
-class Utils
+class RichContentUtils
 {
     public static ShowMenu(menu, buttonOrPosition: JQuery<HTMLElement> | XYPosition)
     {

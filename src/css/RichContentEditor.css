@@ -87,6 +87,21 @@
 
 .rce-grid .rce-textarea-editor:hover {
     background-color: #f7f7f7;
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.rce-grid-wrapper.edit-mode .rce-grid .rce-heading-wrapper {
+    position: relative;
+}
+
+.rce-grid-wrapper.edit-mode .rce-grid .rce-heading-editor {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.rce-grid .rce-heading-editor:hover {
+    background-color: #f7f7f7;
+    background-color: rgba(0, 0, 0, 0.1);
 }
 
 .rce-grid-wrapper.edit-mode .rce-grid .rce-editor-wrapper {
@@ -208,6 +223,7 @@
     -webkit-box-shadow: 5px 5px 5px 0px rgba(0,0,0,0.1);
     -moz-box-shadow: 5px 5px 5px 0px rgba(0,0,0,0.1);
     box-shadow: 5px 5px 5px 0px rgba(0,0,0,0.1);
+    z-index: 2;
 }
 
 .rce-menu-item {
@@ -230,6 +246,7 @@
 .rce-menu-button {
     /* Fix for weird symbol for the button caret in bootstrap default font */
     font-family: "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif !important;
+    z-index: 1;
 }
 
 .rce-dialog {

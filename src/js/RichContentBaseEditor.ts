@@ -56,6 +56,16 @@ class RichContentBaseEditor
         this.RichContentEditorInstance = richContentEditor;
     }
 
+    public GetDetectionSelectors()
+    {
+        return '';
+    }
+
+    public Import(_target: JQuery<HTMLElement>, _source: JQuery<HTMLElement>)
+    {
+        throw new Error("Method not implemented.");
+    }
+
     public GetMenuLabel(): string
     {
         throw new Error(`GetMenuLabel() not implemented in ${this.constructor['name']}!`);
@@ -146,7 +156,7 @@ class RichContentBaseEditor
         deleteItem.click(function () { _this.OnDelete(elem), menu.remove(); });
         menu.append(deleteItem)
 
-        Utils.ShowMenu(menu, buttonOrPosition);
+        RichContentUtils.ShowMenu(menu, buttonOrPosition);
     }
 
     private showToolbar(elem: JQuery<HTMLElement>)

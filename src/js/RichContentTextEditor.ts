@@ -76,6 +76,33 @@
         });
     }
 
+    public Import(targetElement: JQuery<HTMLElement>, source: JQuery<HTMLElement>)
+    {
+        let detectionSelectors = this.RichContentEditorInstance.GetDetectionSelectors(this);
+
+        if (!source.is(detectionSelectors) && source.find(detectionSelectors).length === 0) 
+        {
+            let clone = source.clone();
+            let textArea = null;
+            if (clone.is('div'))
+            {
+                textArea = clone;
+                textArea.attr('contenteditable', true);
+                textArea.addClass('rce-textarea-editor');
+            }
+            else
+            {
+                textArea = $(`<div class="rce-textarea-editor" contenteditable="true">${clone.html()}</div>`);
+            }
+
+            const textAreaWrapper = $('<div class="rce-textarea-wrapper"></div>');
+            textAreaWrapper.append(textArea);
+            source.replaceWith(textAreaWrapper.append(clone));
+
+            this.Attach(textAreaWrapper, targetElement);
+        }
+    }
+
     public GetMenuLabel(): string
     {
         return this._locale.MenuLabel;
