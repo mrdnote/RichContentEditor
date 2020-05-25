@@ -32,6 +32,10 @@ input.readonly {
     flex-wrap: wrap;
 }
 
+img.fill {
+    width: 100%;
+}
+
 /* Provide sufficient contrast against white background */
 a {
     color: #0366d6;
@@ -124,4 +128,14 @@ h3 {
     margin: 0;
     font-size: 18px;
     line-height: 24px;
+}
+
+div.text {
+    margin-bottom: 1em;
+}
+
+.text:before {
+    clear: both;
+    content: '';
+    display: block;
 }

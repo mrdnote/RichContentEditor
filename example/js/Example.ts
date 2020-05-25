@@ -14,13 +14,16 @@ class Editor
         const options: RichContentEditorOptions =
         {
             Language: 'EN',
-            UploadUrl: 'https://dnote.azurewebsites.net/api/EditorApi/Upload',
-            FileListUrl: 'https://dnote.azurewebsites.net/api/EditorApi/FileList',
+            UploadUrl: 'https://dnote.azurewebsites.net/api/EditorApi/Secret98734234Upload',
+            FileListUrl: 'https://dnote.azurewebsites.net/api/EditorApi/Secret98734234FileList',
             GridFramework: framework,
-            Editors: this.getEditors()
+            Editors: this.getEditors(),
+            OnClose: this.handleClose,
+            OnSave: this.handleSave
         };
 
         let rce = this.instantiateMainEditor(options);
+        rce.GetEditor("RichContentTableEditor").RegisterCssClasses(['red', 'green', 'yellow']);
 
         const options2: RichContentEditorOptions =
         {
@@ -61,11 +64,27 @@ class Editor
                 (window as any).M.textareaAutoResize($('#ExportTextArea'));
             }
         });
+
+        $('#ContentEditButton').click(function ()
+        {
+            $(this).addClass('rce-hide');
+            rce = _this.instantiateMainEditor(options);
+        });
+    }
+
+    private handleClose()
+    {
+        $('#ContentEditButton').removeClass('rce-hide');
+    }
+
+    private handleSave()
+    {
+        $('#ContentEditButton').removeClass('rce-hide');
     }
 
     private getEditors(): string[]
     {
-        const editors: string[] = ['RichContentTextEditor', 'RichContentHeadingEditor'];
+        const editors: string[] = ['RichContentTextEditor', 'RichContentHeadingEditor', 'RichContentFontAwesomeIconEditor', 'RichContentLinkEditor'];
 
         if ($('#ImageCheckBox').prop('checked'))
         {

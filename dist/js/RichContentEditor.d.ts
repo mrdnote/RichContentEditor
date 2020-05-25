@@ -7,16 +7,26 @@ declare class RichContentEditorOptions {
     UploadUrl?: string;
     FileListUrl?: string;
     GridFramework?: string;
+    CancelUrl?: string;
     Editors?: string[];
+    RenderOnSave?: boolean;
+    ShowCloseButton?: boolean;
+    ShowSaveButton?: boolean;
+    OnBeforeSave?: Function;
+    OnSave?: (html: string) => void;
+    OnClose?: Function;
+    OnChange?: Function;
 }
 declare class GridFrameworkBase {
     private static _registrations;
     static Create(gridFramework?: string): GridFrameworkBase;
-    static Register(gridFramework: typeof GridFrameworkBase): void;
+    static Register(name: string, gridFramework: typeof GridFrameworkBase): void;
     GetRightAlignClass?(): string;
     GetLeftAlignClass?(): string;
+    GetBlockAlignClass?(): string;
     GetRightAlignCss?(): KeyValue<string>;
     GetLeftAlignCss?(): KeyValue<string>;
+    GetBlockAlignCss?(): KeyValue<string>;
     UpdateFields(): void;
     GetRowClass(): string;
     GetColumnClass(width: number): string;
@@ -26,6 +36,9 @@ declare class GridFrameworkBase {
     GetExtraLargePrefix(): string;
     GetPreviousSize(size: string): string;
     GetColumnCount(): number;
+    GetColumnLeftAlignClass(): string;
+    GetColumnCenterAlignClass(): string;
+    GetColumnRightAlignClass(): string;
 }
 declare class FileManager {
     private _richContentEditor;
@@ -34,12 +47,12 @@ declare class FileManager {
     static RegisterLocale<T extends typeof FileManagerLocale>(localeType: T, language: string): void;
     constructor(richContentEditor: RichContentEditor, language: string);
     private updateFileList;
-    ShowFileSelectionDialog(action: (url: string) => boolean): void;
+    ShowFileSelectionDialog(url: any, linkUrl: string, lightBox: boolean, action: (url: any, linkUrl: string, lightBox: boolean) => boolean): void;
     private getFileSelectionDialog;
     private getFileSelectionDialogHtml;
 }
 declare class RichContentEditor {
-    RegisteredEditors: RichContentBaseEditor[];
+    RegisteredEditors: Dictionary<RichContentBaseEditor>;
     FileManager: FileManager;
     DialogManager: DialogManager;
     GridFramework: GridFrameworkBase;
@@ -53,7 +66,7 @@ declare class RichContentEditor {
     GetEditor?(editor: string): RichContentBaseEditor;
     Init(editorId: string, options: RichContentEditorOptions): RichContentEditor;
     GetDetectionSelectors(editor: RichContentBaseEditor): string;
-    private import;
+    ImportChildren(target: JQuery<HTMLElement>, source: JQuery<HTMLElement>, inTableCell: any, inLink: boolean): void;
     Delete(): void;
     /**
      * Get the editor content as HTML.
@@ -67,6 +80,7 @@ declare class RichContentEditor {
     private cleanElement;
     EliminateElement(elem: JQuery<HTMLElement>): void;
     private instantiateEditors;
+    private handleChanged;
     InsertEditor(editorTypeName: string, element: JQuery<HTMLElement>): void;
     CloseAllMenus(): void;
     CloseAllToolbars(): void;
@@ -80,8 +94,8 @@ declare class DialogManager {
     static RegisterLocale<T extends typeof DialogManagerLocale>(localeType: T, language: string): void;
     constructor(richContentEditor: RichContentEditor, language: string);
     ShowDialog(dialog: JQuery<HTMLElement>, onSubmit?: (dialog: JQuery<HTMLElement>) => boolean): void;
-    ValidateFields(gridSelector: string, elem: JQuery<HTMLElement>): boolean;
     private dialogKeyDown;
+    ValidateFields(gridSelector: string, elem: JQuery<HTMLElement>): boolean;
     CloseDialog(dialog: JQuery<HTMLElement>): void;
     ShowErrorDialog(gridSelector: string, message: string): void;
     getErrorDialogHtml(): any;

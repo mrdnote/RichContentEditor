@@ -2,6 +2,7 @@
 {
     private static _localeRegistrations?: Dictionary<typeof RichContentHeadingEditorLocale> = {};
     private _locale?: RichContentHeadingEditorLocale;
+    private _selectionChangedBound = false;
 
     public static RegisterLocale?<T extends typeof RichContentHeadingEditorLocale>(localeType: T, language: string)
     {
@@ -26,7 +27,7 @@
 
         if (!html) html = '';
 
-        const textArea = $(`<div class="rce-heading-editor" contenteditable="true">${html}</div>`);
+        const textArea = $(`<h1 class="rce-heading-editor" contenteditable="true">${html}</h1>`);
 
         if (textArea.find('script,table,img,form').length)
         {
@@ -45,7 +46,12 @@
 
         textAreaWrapper.find('.rce-heading-editor').focus();
 
-        textArea[0].onpaste = function(e)
+        this.setupEvents(textArea);
+    }
+
+    private setupEvents(textArea: JQuery<HTMLElement>)
+    {
+        textArea[0].onpaste = function (e)
         {
             e.preventDefault();
             const text = e.clipboardData.getData('text/plain');
@@ -66,14 +72,17 @@
             }
         });
 
-
-        document.addEventListener('selectionchange', function ()
+        if (!this._selectionChangedBound)
         {
-            if ($(document.activeElement).hasClass('rce-heading-editor'))
+            document.addEventListener('selectionchange', function ()
             {
-                $(document.activeElement).data('selection', (window as any).rangy.getSelection().getRangeAt(0));
-            }
-        });
+                if ($(document.activeElement).hasClass('rce-heading-editor'))
+                {
+                    $(document.activeElement).data('selection', (window as any).rangy.getSelection().getRangeAt(0));
+                }
+            });
+            this._selectionChangedBound = true;
+        }
     }
 
     public GetDetectionSelectors(): string
@@ -94,6 +103,8 @@
             source.replaceWith(headingWrapper.append(clone));
 
             this.Attach(headingWrapper, targetElement);
+
+            this.setupEvents(clone);
         }
     }
 
@@ -108,6 +119,11 @@
     }
 
     public AllowInTableCell(): boolean
+    {
+        return true;
+    }
+
+    public AllowInLink(): boolean
     {
         return true;
     }
@@ -189,4 +205,4 @@
     }
 }
 
-RichContentBaseEditor.RegisterEditor(RichContentHeadingEditor);
+RichContentBaseEditor.RegisterEditor('RichContentHeadingEditor', RichContentHeadingEditor);

@@ -1,8 +1,9 @@
-declare class RichContentImageEditorLocaleNL extends RichContentImageEditorLocale {
+declare class RichContentFontAwesomeIconEditorLocale {
     MenuLabel: string;
     AlignLeftMenuLabel: string;
     AlignRightMenuLabel: string;
-    BlockAlignMenuLabel: string;
     DefaultSizeMenuLabel: string;
     EditMenuLabel: string;
+    IconLabel: string;
+    FieldRequiredLabel: string;
 }

@@ -11,7 +11,23 @@
 
     public GridFramework?: string = null;
 
+    public CancelUrl?: string = null;
+
     public Editors?: string[] = null;
+
+    public RenderOnSave? = true;
+
+    public ShowCloseButton? = true;
+
+    public ShowSaveButton? = true;
+
+    public OnBeforeSave?: Function = null;
+
+    public OnSave?: (html: string) => void = null;
+
+    public OnClose?: Function = null;
+
+    public OnChange?: Function = null;
 }
 
 class GridFrameworkBase
@@ -29,9 +45,9 @@ class GridFrameworkBase
         return new GridFrameworkBase._registrations[gridFramework];
     }
 
-    public static Register(gridFramework: typeof GridFrameworkBase)
+    public static Register(name: string, gridFramework: typeof GridFrameworkBase)
     {
-        GridFrameworkBase._registrations[gridFramework['name']] = gridFramework;
+        GridFrameworkBase._registrations[name] = gridFramework;
     }
 
     public GetRightAlignClass?(): string
@@ -40,6 +56,11 @@ class GridFrameworkBase
     }
 
     public GetLeftAlignClass?(): string
+    {
+        return null;
+    }
+
+    public GetBlockAlignClass?(): string
     {
         return null;
     }
@@ -61,6 +82,17 @@ class GridFrameworkBase
         {
             Key: 'float',
             Value: 'right'
+        }
+
+        return kv;
+    }
+
+    public GetBlockAlignCss?(): KeyValue<string>
+    {
+        var kv: KeyValue<string> =
+        {
+            Key: 'width',
+            Value: '100%'
         }
 
         return kv;
@@ -120,6 +152,21 @@ class GridFrameworkBase
     {
         return 12;
     }
+
+    public GetColumnLeftAlignClass(): string
+    {
+        return null;
+    }
+
+    public GetColumnCenterAlignClass(): string
+    {
+        return null;
+    }
+
+    public GetColumnRightAlignClass(): string
+    {
+        return null;
+    }
 }
 
 class FileManager
@@ -172,13 +219,13 @@ class FileManager
                 $('.file-table .col', dialog).click(function ()
                 {
                     const url = $(this).closest('.col').find('a').attr('href');
-                    $(gridSelector + '_SelectedUrl').val(url);
+                    $('.image-url', dialog).val(url);
                 });
             },
         });
     }
 
-    public ShowFileSelectionDialog(action: (url: string) => boolean): void
+    public ShowFileSelectionDialog(url, linkUrl: string, lightBox: boolean, action: (url, linkUrl: string, lightBox: boolean) => boolean): void
     {
         const gridSelector = this._richContentEditor.GridSelector;
 
@@ -190,20 +237,25 @@ class FileManager
         if (!this._richContentEditor.Options.FileListUrl)
             dialog.find(`a[href="#${this._richContentEditor.EditorId}_BySelection"]`).closest('li').addClass('rce-hide');
 
+        $('.image-url', dialog).val(url);
+        $('.link-url', dialog).val(linkUrl);
+        $('.lightbox-check', dialog).prop('checked', lightBox);
+
         this._richContentEditor.DialogManager.ShowDialog(dialog, (dialog) =>
         {
-            const tab = $('.rce-tab-body.active', dialog);
-            let valid = this._richContentEditor.DialogManager.ValidateFields(gridSelector, $('input', tab));
+            let valid = this._richContentEditor.DialogManager.ValidateFields(gridSelector, $('input:not(:file)', dialog));
             if (!valid) return;
 
-            const url = $('.image-url', tab).val().toString();
+            const url = $('.image-url', dialog).val().toString();
+            const linkUrl = $('.link-url', dialog).val().toString();
+            const lightBox = $('.lightbox-check', dialog).prop('checked');
 
-            const ok = action(url);
+            const ok = action(url, linkUrl, lightBox);
             if (!ok)
                 return false;
 
             $('.image-url', dialog).val('');
-            $('.uploaded-url input', dialog).val('');
+            $('.link-url', dialog).val('');
 
             return true;
         });
@@ -221,6 +273,10 @@ class FileManager
         {
             dialog = $(this.getFileSelectionDialogHtml(this._richContentEditor.EditorId));
             dialog.appendTo($('#' + editorId));
+            if (RichContentUtils.HasFeatherLight())
+            {
+                $('.featherlight-input-group', dialog).removeClass('hide');
+            }
 
             $('.rce-tabs .rce-tab a', dialog).click(function (e)
             {
@@ -273,7 +329,7 @@ class FileManager
                         $('.file-path-wrapper-progress', dialog).css({ width: 0 });
                         $('input:file', dialog).val('');
                         $('.file-path', dialog).val('');
-                        $('.uploaded-url input', dialog).val(data.toString());
+                        $('.image-url', dialog).val(data.toString());
                     },
                     xhr: function ()
                     {
@@ -321,11 +377,7 @@ class FileManager
                             <li class="rce-tab"><a href="#${editorId}_BySelection">${this.Locale.BySelectionTab}</a></li>
                         </ul>
                         <div id="${editorId}_ByUrl" class="rce-tab-body active">
-                            <div class="rce-form-field">
-                                <label for="${editorId}_ImageUrl" class="rce-label">${this.Locale.UrlField}</label>
-                                <input id="${editorId}_ImageUrl" class="image-url validate rce-input" type="url" required="required" />
-                                <span class="rce-error-text">${this.Locale.EnterUrlValidation}</span>
-                            </div>
+                            ${this.Locale.ByUrlMessage}
                         </div>
                         <div id="${editorId}_ByUpload" class="rce-tab-body">
                             <div class="file-path-wrapper-with-progress">
@@ -336,22 +388,28 @@ class FileManager
                                 <div class="file-path-wrapper-progress"></div>
                                 <div class="rce-clear"></div>
                             </div>
-                            <div class="rce-form-field uploaded-url">
-                                <label for="${editorId}_UploadedUrl" class="rce-label">${this.Locale.UrlField}</label>
-                                <input id="${editorId}_UploadedUrl" type="url" class="validate readonly image-url rce-input" required="required" placeholder="${this.Locale.NoUploadPlaceholder}" />
-                                <span class="rce-error-text">${this.Locale.UploadValidation}</span>
-                            </div>
                         </div>
                         <div id="${editorId}_BySelection" class="rce-tab-body">
                             <div class="file-table">
                                 ${this.Locale.LoadingProgressMessage}
                             </div>
-                            <div class="rce-form-field uploaded-url">
-                                <label for="${editorId}_SelectedUrl" class="rce-label">${this.Locale.UrlField}</label>
-                                <input id="${editorId}_SelectedUrl" type="url" class="validate readonly image-url rce-input" required="required" placeholder="${this.Locale.NoSelectionPlaceholder}" />
-                                <span class="rce-error-text">${this.Locale.SelectValidation}</span>
-                            </div>
                         </div>
+                    </div>
+                    <div class="rce-form-field">
+                        <label for="${editorId}_ImageUrl" class="rce-label">${this.Locale.UrlField}</label>
+                        <input id="${editorId}_ImageUrl" class="image-url validate rce-input" type="url" required="required" />
+                        <span class="rce-error-text">${this.Locale.EnterUrlValidation}</span>
+                    </div>
+                    <div class="rce-form-field">
+                        <label for="${editorId}_LinkUrl" class="rce-label">${this.Locale.LinkField}</label>
+                        <input id="${editorId}_LinkUrl" class="link-url rce-input" type="url" />
+                        <span class="rce-error-text">${this.Locale.EnterUrlValidation}</span>
+                    </div>
+                    <div class="rce-input-group hide featherlight-input-group">
+                        <label class="rce-radio">
+                            <input  id="${editorId}_LightBox" class="lightbox-check" type="checkbox"/>
+                            <span>Featherlight</span>
+                        </label>
                     </div>
                 </div>
                 <div class="rce-dialog-footer">
@@ -364,7 +422,7 @@ class FileManager
 
 class RichContentEditor
 {
-    public RegisteredEditors: RichContentBaseEditor[] = [];
+    public RegisteredEditors: Dictionary<RichContentBaseEditor> = { };
     public FileManager: FileManager = null;
     public DialogManager: DialogManager = null;
     public GridFramework: GridFrameworkBase = null;
@@ -383,14 +441,7 @@ class RichContentEditor
 
     public GetEditor?(editor: string): RichContentBaseEditor
     {
-        for (var i = 0; i < this.RegisteredEditors.length; i++)
-        {
-            var editorInstance = this.RegisteredEditors[i];
-            if (editorInstance['Name'] === editor)
-                return editorInstance;
-        }
-
-        return null;
+        return this.RegisteredEditors[editor];
     }
 
     public Init(editorId: string, options: RichContentEditorOptions): RichContentEditor
@@ -401,6 +452,10 @@ class RichContentEditor
         {
             options = new RichContentEditorOptions();
         }
+
+        if (options.RenderOnSave === undefined) options.RenderOnSave = true;
+        if (options.ShowSaveButton === undefined) options.ShowSaveButton = true;
+        if (options.ShowCloseButton === undefined) options.ShowCloseButton = true;
 
         this.EditorId = editorId;
         const gridSelector = '#' + editorId;
@@ -414,8 +469,14 @@ class RichContentEditor
         this.instantiateEditors(options.Editors);
 
         const editorElement = $(HtmlTemplates.GetMainEditorTemplate(editorId));
-        editorElement.data('orig', $(gridSelector));
-        this.import(editorElement, $(gridSelector));
+        editorElement.data('orig', $(gridSelector).prop('outerHTML'));
+        if (options.CancelUrl)
+        {
+            editorElement.find('.rce-editor-close').attr('href', options.CancelUrl);
+        }
+        editorElement.find('.rce-editor-save').toggleClass('rce-hide', !options.ShowSaveButton)
+        editorElement.find('.rce-editor-close').toggleClass('rce-hide', !options.ShowCloseButton)
+        this.ImportChildren(editorElement, $(gridSelector), false, false);
         $(gridSelector).replaceWith(editorElement);
 
         var grid = $(gridSelector + ' .rce-grid');
@@ -425,7 +486,7 @@ class RichContentEditor
             e.preventDefault();
             e.stopPropagation();
             _this.CloseAllMenus();
-            _this.showAddMenu(new XYPosition(e.clientX, e.clientY));
+            _this.showAddMenu(new XYPosition(e.clientX + window.scrollX, e.clientY + window.scrollY));
         });
 
         if ((window as any).Sortable)
@@ -438,8 +499,41 @@ class RichContentEditor
 
         $(gridSelector + ' .rce-editor-save').click(function ()
         {
-            _this.Save();
+            if (_this.Options.OnBeforeSave)
+            {
+                if (!_this.Options.OnBeforeSave())
+                    return;
+            }
+
+            const html = _this.GetHtml();
+
+            if (_this.Options.RenderOnSave)
+            {
+                const orig = $($(gridSelector).data('orig') as string);
+                orig.empty();
+                orig.append($(html));
+                $(gridSelector).replaceWith(orig);
+            }
+
+            if (_this.Options.OnSave)
+            {
+                _this.Options.OnSave(html);
+            }
         });
+
+        if (!options.CancelUrl)
+        {
+            $(gridSelector + ' .rce-editor-close').click(function ()
+            {
+                const orig = $($(gridSelector).data('orig') as string);
+                $(gridSelector).replaceWith(orig);
+
+                if (_this.Options.OnClose)
+                {
+                    _this.Options.OnClose();
+                }
+            });
+        }
 
         $(gridSelector + ' .rce-editor-preview-lock').click(function ()
         {
@@ -468,12 +562,14 @@ class RichContentEditor
 
             // Close all open menus if clicking outside of a menu button
             if (!target.hasClass('rce-menu-button') && target.closest('.rce-menu,.rce-menu-button').length === 0)
+            {
                 _this.CloseAllMenus();
 
-            // When clicking outside of editor, close toolbars too
-            if (target.closest('.rce-grid-wrapper').length === 0)
-            {
-                _this.CloseAllToolbars();
+                // When clicking outside of editor, close toolbars too
+                if (target.closest('.rce-grid-wrapper').length === 0)
+                {
+                    _this.CloseAllToolbars();
+                }
             }
         });
 
@@ -495,9 +591,9 @@ class RichContentEditor
     {
         let result = 'table,form,script';
 
-        for (let i = 0; i < this.RegisteredEditors.length; i++)
+        for (let key in this.RegisteredEditors)
         {
-            const otherEditor = this.RegisteredEditors[i];
+            const otherEditor = this.RegisteredEditors[key];
             if (otherEditor != editor)
             {
                 const otherSelectors = otherEditor.GetDetectionSelectors();
@@ -512,17 +608,20 @@ class RichContentEditor
         return result;
     }
 
-    private import(target: JQuery<HTMLElement>, source: JQuery<HTMLElement>)
+    public ImportChildren(target: JQuery<HTMLElement>, source: JQuery<HTMLElement>, inTableCell, inLink: boolean)
     {
         const _this = this;
 
         const elements = source.children();
         elements.each(function ()
         {
-            for (let i = 0; i < _this.RegisteredEditors.length; i++)
+            for (let key in _this.RegisteredEditors)
             {
-                const editor = _this.RegisteredEditors[i];
-                editor.Import(target, $(this));
+                const editor = _this.RegisteredEditors[key];
+                if ((!inTableCell || editor.AllowInTableCell()) && (!inLink || editor.AllowInLink()))
+                {
+                    editor.Import(target, $(this));
+                }
             }
         });
     }
@@ -597,9 +696,9 @@ class RichContentEditor
 
         elem.removeClass('rce-editor-wrapper rce-editor-wrapper-keep');
 
-        for (var i = 0; i < this.RegisteredEditors.length; i++)
+        for (let key in this.RegisteredEditors)
         {
-            var editor = this.RegisteredEditors[i];
+            var editor = this.RegisteredEditors[key];
             editor.Clean(elem);
         }
     }
@@ -619,6 +718,8 @@ class RichContentEditor
 
     private instantiateEditors(editors: string[])
     {
+        const _this = this;
+
         if (!editors)
         {
             const registrations = RichContentBaseEditor.GetRegistrations();
@@ -626,7 +727,11 @@ class RichContentEditor
             {
                 var instance = RichContentBaseEditor.Create(key);
                 instance.Init(this);
-                this.RegisteredEditors.push(instance);
+                instance.OnChange = function ()
+                {
+                    _this.handleChanged();
+                };
+                this.RegisteredEditors[key] = instance;
             }
         }
         else
@@ -635,8 +740,20 @@ class RichContentEditor
             {
                 var instance = RichContentBaseEditor.Create(editors[i]);
                 instance.Init(this);
-                this.RegisteredEditors.push(instance);
+                instance.OnChange = function ()
+                {
+                    _this.handleChanged();
+                };
+                this.RegisteredEditors[editors[i]] = instance;
             }
+        }
+    }
+
+    private handleChanged(): void
+    {
+        if (this.Options.OnChange)
+        {
+            this.Options.OnChange();
         }
     }
 
@@ -644,9 +761,9 @@ class RichContentEditor
     {
         let editor: RichContentBaseEditor = null;
 
-        for (let i = 0; i < this.RegisteredEditors.length; i++)
+        for (let key in this.RegisteredEditors)
         {
-            const registeredEditor = this.RegisteredEditors[i];
+            const registeredEditor = this.RegisteredEditors[key];
             if (registeredEditor.Name === editorTypeName)
             {
                 editor = registeredEditor;
@@ -679,11 +796,11 @@ class RichContentEditor
 
         const menu = $('<div class="rce-menu"></div>');
 
-        for (let i = 0; i < this.RegisteredEditors.length; i++)
+        for (let key in this.RegisteredEditors)
         {
-            const editor = this.RegisteredEditors[i];
+            const editor = this.RegisteredEditors[key];
             const item = $(`<button type="button" class="rce-menu-item"><i class="rce-menu-icon ${editor.GetMenuIconClasses()}"></i> <span class="rce-menu-label">${editor.GetMenuLabel()}</span></button>`);
-            item.click(function () { _this.CloseAllMenus(); editor.Insert($(_this.GridSelector + ' .rce-grid')); });
+            item.click(function () { _this.handleChanged(); _this.CloseAllMenus(); editor.Insert($(_this.GridSelector + ' .rce-grid')); });
             menu.append(item);
         }
 
@@ -727,7 +844,7 @@ class DialogManager
 
         if (!DialogManager._eventAttached)
         {
-            $(document).on('keydown', _this.dialogKeyDown);
+            $(document).on('keydown', (e) => { _this.dialogKeyDown(e); });
             DialogManager._eventAttached = true;
         }
 
@@ -760,6 +877,15 @@ class DialogManager
         });
     }
 
+    private dialogKeyDown(e: JQuery.KeyDownEvent<Document, undefined, Document, Document>)
+    {
+        if (e.keyCode === 27)
+        {
+            if (DialogManager._dialogStack.length)
+                this.CloseDialog(DialogManager._dialogStack.pop())
+        }
+    }
+
     public ValidateFields(gridSelector: string, elem: JQuery<HTMLElement>): boolean
     {
         let valid = true;
@@ -782,15 +908,6 @@ class DialogManager
         }
 
         return valid;
-    }
-
-    private dialogKeyDown(e: JQueryKeyEventObject)
-    {
-        if (e.keyCode === 27)
-        {
-            if (DialogManager._dialogStack.length)
-                this.CloseDialog(DialogManager._dialogStack.pop())
-        }
     }
 
     public CloseDialog(dialog: JQuery<HTMLElement>)
@@ -842,7 +959,8 @@ class HtmlTemplates
                 <div class="rce-editor-top-icons">
                     <button type="button" class="rce-button rce-button-toolbar rce-editor-preview-lock"><i class="fas fa-eye"></i></button>
                     <button type="button" class="rce-button rce-button-toolbar rce-editor-preview-unlock rce-hide"><i class="fas fa-eye-slash"></i></button>
-                    <button type="button" class="rce-button rce-button-toolbar rce-editor-save"><i class="fas fa-save"></i></button>
+                    <button type="button" class="rce-button rce-button-toolbar rce-editor-save rce-hide"><i class="fas fa-save"></i></button>
+                    <a href="javascript:" class="rce-button rce-button-toolbar rce-editor-close rce-hide"><i class="fas fa-times"></i></a>
                 </div>
             </div>`
     }

@@ -61,6 +61,11 @@
         return 'left';
     }
 
+    public GetBlockAlignClass?(): string
+    {
+        return 'fill';
+    }
+
     public GetRightAlignCss?(): KeyValue<string>
     {
         return null;
@@ -70,6 +75,26 @@
     {
         return null;
     }
+
+    public GetBlockAlignCss?(): KeyValue<string>
+    {
+        return null;
+    }
+
+    public GetColumnLeftAlignClass(): string
+    {
+        return "left-align";
+    }
+
+    public GetColumnCenterAlignClass(): string
+    {
+        return "center-align";
+    }
+
+    public GetColumnRightAlignClass(): string
+    {
+        return "right-align";
+    }
 }
 
-GridFrameworkBase.Register(GridFrameworkMaterialize);
+GridFrameworkBase.Register('GridFrameworkMaterialize', GridFrameworkMaterialize);

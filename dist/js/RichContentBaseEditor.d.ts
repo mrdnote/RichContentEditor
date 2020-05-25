@@ -19,9 +19,11 @@ declare class ContextCommand {
 }
 declare class RichContentBaseEditor {
     Name: string;
+    OnChange?: Function;
     protected RichContentEditorInstance: RichContentEditor;
+    private _registeredCssClasses;
     private static _registrations;
-    static RegisterEditor<T extends typeof RichContentBaseEditor>(editorType: T): void;
+    static RegisterEditor<T extends typeof RichContentBaseEditor>(name: string, editorType: T): void;
     static Create(editor: string): RichContentBaseEditor;
     static GetRegistrations(): Dictionary<typeof RichContentBaseEditor>;
     Init(richContentEditor: RichContentEditor): void;
@@ -33,11 +35,16 @@ declare class RichContentBaseEditor {
     GetContextCommands(_elem: JQuery<HTMLElement>): ContextCommand[];
     GetToolbarCommands(_elem: JQuery<HTMLElement>): ContextCommand[];
     AllowInTableCell(): boolean;
+    AllowInLink(): boolean;
     Clean(_elem: JQuery<HTMLElement>): void;
-    SetupEditor(elem: JQuery<HTMLElement>, keepWhenCleaning?: boolean): void;
+    SetupEditor(elems: JQuery<HTMLElement>, keepWhenCleaning?: boolean): void;
     private showContextMenu;
+    protected getActualElement(elem: JQuery<HTMLElement>): JQuery<HTMLElement>;
+    RegisterCssClasses(classes: string[]): void;
     private showToolbar;
     OnDelete(elem: JQuery<HTMLElement>): void;
     Insert(_targetElement?: JQuery<HTMLElement>): void;
     Attach(element: any, target: JQuery<HTMLElement>): void;
+    private getCssClassesDialog;
+    private getCssClassesDialogHtml;
 }

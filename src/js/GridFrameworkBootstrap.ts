@@ -32,12 +32,17 @@
 
     public GetRightAlignClass?(): string
     {
-        return 'pull-right';
+        return 'float-right';
     }
 
     public GetLeftAlignClass?(): string
     {
-        return 'pull-left';
+        return 'float-left';
+    }
+
+    public GetBlockAlignClass?(): string
+    {
+        return null;
     }
 
     public GetRightAlignCss?(): KeyValue<string>
@@ -49,6 +54,21 @@
     {
         return null;
     }
+
+    public GetColumnLeftAlignClass(): string
+    {
+        return "text-left";
+    }
+
+    public GetColumnCenterAlignClass(): string
+    {
+        return "text-center";
+    }
+
+    public GetColumnRightAlignClass(): string
+    {
+        return "text-right";
+    }
 }
 
-GridFrameworkBase.Register(GridFrameworkBootstrap);
+GridFrameworkBase.Register('GridFrameworkBootstrap', GridFrameworkBootstrap);

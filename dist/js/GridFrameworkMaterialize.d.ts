@@ -9,6 +9,11 @@ declare class GridFrameworkMaterialize extends GridFrameworkBase {
     GetPreviousSize(size: string): string;
     GetRightAlignClass?(): string;
     GetLeftAlignClass?(): string;
+    GetBlockAlignClass?(): string;
     GetRightAlignCss?(): KeyValue<string>;
     GetLeftAlignCss?(): KeyValue<string>;
+    GetBlockAlignCss?(): KeyValue<string>;
+    GetColumnLeftAlignClass(): string;
+    GetColumnCenterAlignClass(): string;
+    GetColumnRightAlignClass(): string;
 }

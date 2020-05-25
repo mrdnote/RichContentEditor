@@ -2,6 +2,7 @@
 {
     private static _localeRegistrations?: Dictionary<typeof RichContentTextEditorLocale> = {};
     private _locale?: RichContentTextEditorLocale;
+    private _selectionChangedBound = false;
 
     public static RegisterLocale?<T extends typeof RichContentTextEditorLocale>(localeType: T, language: string)
     {
@@ -26,14 +27,17 @@
 
         if (!html) html = '';
 
-        const textArea = $(`<div class="rce-textarea-editor" contenteditable="true">${html}</div>`);
+        const inline = targetElement.is('a');
+        const tag = inline ? 'span' : 'div';
+
+        const textArea = $(`<${tag} class="rce-textarea-editor" contenteditable="true">${html}</${tag}>`);
 
         if (textArea.find('script,table,img,form').length)
         {
             throw 'It is not allowed to insert content containing the following tags: script, table, img, form';
         }
 
-        const textAreaWrapper = $('<div class="rce-textarea-wrapper"></div>');
+        const textAreaWrapper = $(`<${tag} class="rce-textarea-wrapper"></${tag}>`);
         textAreaWrapper.append(textArea);
 
         if (!targetElement)
@@ -45,7 +49,24 @@
 
         textAreaWrapper.find('.rce-textarea-editor').focus();
 
-        textArea[0].onpaste = function(e)
+        this.setupEvents(textArea);
+    }
+
+    protected getActualElement(elem: JQuery<HTMLElement>): JQuery<HTMLElement>
+    {
+        if (elem.hasClass('rce-textarea-wrapper'))
+        {
+            return elem.find('.rce-textarea-editor');
+        }
+
+        return elem;
+    }
+
+    private setupEvents(textArea: JQuery<HTMLElement>)
+    {
+        const _this = this;
+
+        textArea[0].onpaste = function (e)
         {
             e.preventDefault();
             const text = e.clipboardData.getData('text/plain');
@@ -66,40 +87,55 @@
             }
         });
 
-
-        document.addEventListener('selectionchange', function ()
+        textArea.on('input', function (e)
         {
-            if ($(document.activeElement).hasClass('rce-textarea-editor'))
-            {
-                $(document.activeElement).data('selection', (window as any).rangy.getSelection().getRangeAt(0));
-            }
+            _this.OnChange();
         });
+
+        if (!this._selectionChangedBound)
+        {
+            document.addEventListener('selectionchange', function ()
+            {
+                if ($(document.activeElement).hasClass('rce-textarea-editor'))
+                {
+                    $(document.activeElement).data('selection', (window as any).rangy.getSelection().getRangeAt(0));
+                }
+            });
+            this._selectionChangedBound = true;
+        }
+    }
+
+    public GetDetectionSelectors(): string
+    {
+        return '.text';
     }
 
     public Import(targetElement: JQuery<HTMLElement>, source: JQuery<HTMLElement>)
     {
-        let detectionSelectors = this.RichContentEditorInstance.GetDetectionSelectors(this);
-
-        if (!source.is(detectionSelectors) && source.find(detectionSelectors).length === 0) 
+        if (source.hasClass('text')) 
         {
             let clone = source.clone();
-            let textArea = null;
-            if (clone.is('div'))
+            const inline = targetElement.is('a');
+            const tag = inline ? 'span' : 'div';
+            let textArea: JQuery<HTMLElement> = null;
+            if (clone.is(tag))
             {
                 textArea = clone;
-                textArea.attr('contenteditable', true);
+                textArea.attr('contenteditable', 'true');
                 textArea.addClass('rce-textarea-editor');
             }
             else
             {
-                textArea = $(`<div class="rce-textarea-editor" contenteditable="true">${clone.html()}</div>`);
+                textArea = $(`<${tag} class="rce-textarea-editor" contenteditable="true">${clone.html()}</${tag}>`);
             }
 
-            const textAreaWrapper = $('<div class="rce-textarea-wrapper"></div>');
+            const textAreaWrapper = $(`<${tag} class="rce-textarea-wrapper"></${tag}>`);
             textAreaWrapper.append(textArea);
             source.replaceWith(textAreaWrapper.append(clone));
 
             this.Attach(textAreaWrapper, targetElement);
+
+            this.setupEvents(textArea);
         }
     }
 
@@ -118,12 +154,21 @@
         return true;
     }
 
+    public AllowInLink(): boolean
+    {
+        return true;
+    }
+
     public Clean(elem: JQuery<HTMLElement>)
     {
-        elem.removeClass('rce-textarea-editor');
-        if (elem.attr('class') === '')
-            elem.removeAttr('class');
-        elem.removeAttr('contenteditable');
+        if (elem.hasClass('rce-textarea-editor'))
+        {
+            elem.removeClass('rce-textarea-editor');
+            if (elem.attr('class') === '')
+                elem.removeAttr('class');
+            elem.removeAttr('contenteditable');
+            elem.addClass('text');
+        }
 
         super.Clean(elem);
     }
@@ -170,4 +215,4 @@
     }
 }
 
-RichContentBaseEditor.RegisterEditor(RichContentTextEditor);
+RichContentBaseEditor.RegisterEditor('RichContentTextEditor', RichContentTextEditor);

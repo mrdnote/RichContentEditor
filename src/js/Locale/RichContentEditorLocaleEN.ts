@@ -1,10 +1,8 @@
 ﻿class RichContentEditorLocale
 {
     Delete = "Delete";
-    DeviceMenuMobile = "Mobile";
-    DeviceMenuMobileLandscape = "Mobile Landscape"
-    DeviceMenuTablet = "Tablet";
-    DeviceMenuDesktop = "Desktop";
+    FieldRequiredLabel = "This field is required";
+    EditClasses = "Edit CSS Classes";
 }
 
 RichContentEditor.RegisterLocale(RichContentEditorLocale, 'EN');

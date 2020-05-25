@@ -3,4 +3,6 @@ declare class RichContentImageEditorLocale {
     AlignLeftMenuLabel: string;
     AlignRightMenuLabel: string;
     BlockAlignMenuLabel: string;
+    DefaultSizeMenuLabel: string;
+    EditMenuLabel: string;
 }

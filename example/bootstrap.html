@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>D|Note HTML Editor</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/featherlight@1.7.14/release/featherlight.min.css" />
     <!--<link rel="stylesheet" href="../dist/css/RichContentEditor.css?ts=120520200225" />-->
     <link rel="stylesheet" href="../src/css/RichContentEditor.css" />
     <link rel="stylesheet" href="css/Example.css" />
@@ -65,19 +66,25 @@
         }
     </style>
     <div class="container">
-        <main role="main" class="pb-3">
+        <main role="main" class="pb-3" style="position: relative;">
 
-            <h2>D|Note HTML Editor Demo</h2>
+            <h2>D|Note Rich Content Editor Demo</h2>
 
-            <div id="RichContentEditorCanvas" style="height: 147px;">
-                <img class="pull-right" src="https://dnoteweb.blob.core.windows.net:443/editor-uploads/Dnote%20Logo%20400px.png" />
-                <h1>Welcome to DNote's HTML Editor</h1>
+            <button id="ContentEditButton" class="rce-button rce-button-toolbar rce-hide" type="button" style="position: absolute; right: 0; margin-top: 8px;"><i class="fas fa-edit" aria-hidden="true"></i></button>
+
+            <div id="RichContentEditorCanvas" style="min-height: 147px; margin-top: 40px;">
+                <img class="float-right" src="https://dnoteweb.blob.core.windows.net:443/editor-uploads/Dnote%20Logo%20400px.png" />
+                <h1>Welcome to DNote's Rich Content Editor</h1>
                 <div><b>Hi!</b><div>Start by clicking the "plus"-icon below...</div></div>
-                <div class="row">
-                    <div class="col col-12 col-md-12 col-lg-12 col-xl-6">A table column...</div>
-                    <div class="col col-12 col-md-12 col-lg-12 col-xl-6">Second column</div>
+                <div class="table">
+                    <div class="row">
+                        <div class="col col-12 col-md-12 col-lg-12 col-xl-6"><div class="text">A table column...</div></div>
+                        <div class="col col-12 col-md-12 col-lg-12 col-xl-6"><div class="text">Second column</div></div>
+                    </div>
                 </div>
+                <a href="#test"><i class="fas fa-apple-alt float-left"></i><span class="text" data="Bla">An apple</span></a>
             </div>
+            <div class="clearfix"></div>
 
             <div class="features-table">
 
@@ -183,6 +190,7 @@ new RichContentEditor().Init('MyEditor', options);</pre>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.10.2/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/rangy@1.3.0/lib/rangy-core.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/featherlight@1.7.14/release/featherlight.min.js"></script>
 
     <!--<script src="../dist/js/RichContentEditor.js?ts=120520200225"></script>
     <script src="../dist/js/RichContentEditorNL.js?ts=120520200225"></script>-->
@@ -192,7 +200,9 @@ new RichContentEditor().Init('MyEditor', options);</pre>
     <script src="../src/js/RichContentEditor.js"></script>
     <script src="../src/js/RichContentTextEditor.js"></script>
     <script src="../src/js/RichContentHeadingEditor.js"></script>
+    <script src="../src/js/RichContentLinkEditor.js"></script>
     <script src="../src/js/RichContentImageEditor.js"></script>
+    <script src="../src/js/RichContentFontAwesomeIconEditor.js"></script>
     <script src="../src/js/RichContentTableEditor.js"></script>
     <script src="../src/js/GridFrameworkBootstrap.js"></script>
     <script src="../src/js/GridFrameworkMaterialize.js"></script>
@@ -208,6 +218,10 @@ new RichContentEditor().Init('MyEditor', options);</pre>
     <script src="../src/js/Locale/RichContentHeadingEditorLocaleNL.js"></script>
     <script src="../src/js/Locale/RichContentImageEditorLocaleEN.js"></script>
     <script src="../src/js/Locale/RichContentImageEditorLocaleNL.js"></script>
+    <script src="../src/js/Locale/RichContentLinkEditorLocaleEN.js"></script>
+    <script src="../src/js/Locale/RichContentLinkEditorLocaleNL.js"></script>
+    <script src="../src/js/Locale/RichContentFontAwesomeIconEditorLocaleEN.js"></script>
+    <script src="../src/js/Locale/RichContentFontAwesomeIconEditorLocaleNL.js"></script>
     <script src="../src/js/Locale/RichContentTableEditorLocaleEN.js"></script>
     <script src="../src/js/Locale/RichContentTableEditorLocaleNL.js"></script>
 

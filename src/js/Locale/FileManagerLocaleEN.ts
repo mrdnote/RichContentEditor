@@ -2,9 +2,11 @@
 {
     FileSelectionDialogTitle = "Insert Image";
     ByUrlTab = "By URL";
+    ByUrlMessage = "Enter the url in the Image URL field below.";
     ByUploadTab = "By Upload";
     BySelectionTab = "Select File";
     UrlField = "Image URL"; 
+    LinkField = "Link URL (optional)"; 
     UploadButton = "Upload";
     NoUploadPlaceholder = "No file uploaded...";
     NoSelectionPlaceholder = "No file selected...";

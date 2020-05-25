@@ -31,12 +31,15 @@ class ContextCommand
 class RichContentBaseEditor
 {
     public Name: string;
+    public OnChange?: Function;
     protected RichContentEditorInstance: RichContentEditor;
+    private _registeredCssClasses: string[] = [];
+
     private static _registrations: Dictionary<typeof RichContentBaseEditor> = {};
 
-    public static RegisterEditor<T extends typeof RichContentBaseEditor>(editorType: T)
+    public static RegisterEditor<T extends typeof RichContentBaseEditor>(name: string, editorType: T)
     {
-        RichContentBaseEditor._registrations[editorType['name']] = editorType;
+        RichContentBaseEditor._registrations[name] = editorType;
     }
 
     public static Create(editor: string): RichContentBaseEditor
@@ -96,41 +99,56 @@ class RichContentBaseEditor
         return false;
     }
 
+    public AllowInLink(): boolean
+    {
+        return false;
+    }
+
     public Clean(_elem: JQuery<HTMLElement>)
     {
     }
 
-    public SetupEditor(elem: JQuery<HTMLElement>, keepWhenCleaning: boolean = false)
+    public SetupEditor(elems: JQuery<HTMLElement>, keepWhenCleaning: boolean = false)
     {
         const _this = this;
 
-        elem.addClass('rce-editor-wrapper');
-        if (keepWhenCleaning) elem.addClass('rce-editor-wrapper-keep');
-        const menuButtonText = _this.GetContextButtonText(elem);
-        const menuButton = $(`<button type="button" class="hover-button rce-menu-button">${menuButtonText}◀</button>`);
-        elem.prepend(menuButton);
-        menuButton.click(function ()
+        elems.each(function ()
         {
-            _this.showContextMenu(elem, menuButton);
-        });
+            const elem = $(this);
 
-        elem.bind('contextmenu', function (e)
-        {
-            e.preventDefault();
-            e.stopPropagation();
-            _this.showContextMenu(elem, new XYPosition(e.clientX, e.clientY));
-        });
+            elem.addClass('rce-editor-wrapper');
+            if (keepWhenCleaning) elem.addClass('rce-editor-wrapper-keep');
+            const menuButtonText = _this.GetContextButtonText(elem);
+            const menuButton = $(`<button type="button" class="hover-button rce-menu-button">${menuButtonText}◀</button>`);
+            elem.prepend(menuButton);
+            menuButton.click(function ()
+            {
+                _this.showContextMenu(elem, menuButton);
+            });
 
-        elem.focusin(function (e)
-        {
-            _this.showToolbar(elem);
-            e.preventDefault();
+            elem.bind('contextmenu', function (e)
+            {
+                e.preventDefault();
+                e.stopPropagation();
+                _this.showContextMenu(elem, new XYPosition(e.clientX + window.scrollX, e.clientY + window.scrollY));
+            });
+
+            elem.focusin(function (e)
+            {
+                // show toolbar when focusing, but only when its not an inline element (because that screws up the layout)
+                if (elem.closest('a').length === 0)
+                {
+                    _this.showToolbar(elem);
+                    e.preventDefault();
+                }
+            });
         });
     }
 
     private showContextMenu(elem, buttonOrPosition: JQuery<HTMLElement> | XYPosition)
     {
         const _this = this;
+        const actualElement = _this.getActualElement(elem);
 
         this.RichContentEditorInstance.CloseAllMenus();
 
@@ -152,11 +170,61 @@ class RichContentBaseEditor
             }
         }
 
+        if (this._registeredCssClasses.length)
+        {
+            const editClassesItem = $(`<button type="button" href="javascript:" class="rce-menu-item"><i class="rce-menu-icon fas fa-code"></i> <span>${_this.RichContentEditorInstance.Locale.EditClasses}</span></button>`);
+            editClassesItem.click(function ()
+            {
+                menu.remove();
+                let dialog = _this.getCssClassesDialog();
+                const list = $('.rce-checkbox-list', dialog);
+                const gridSelector = _this.RichContentEditorInstance.GridSelector;
+
+                for (let index in _this._registeredCssClasses)
+                {
+                    const cls = _this._registeredCssClasses[index];
+                    $(`input[data-value="${cls}"]`, list).prop('checked', actualElement.hasClass(cls));
+                }
+
+                dialog.data('elem', elem);
+
+                _this.RichContentEditorInstance.DialogManager.ShowDialog(dialog, (dialog) =>
+                {
+                    let valid = _this.RichContentEditorInstance.DialogManager.ValidateFields(gridSelector, $('input', dialog));
+                    if (!valid) return;
+
+                    var checkBoxes = $('.rce-dialog-content input:checkbox', dialog);
+                    checkBoxes.each(function ()
+                    {
+                        const checkBox = $(this);
+                        const cls = checkBox.attr('data-value');
+                        actualElement.toggleClass(cls, checkBox.prop('checked'));
+                    });
+
+                    _this.OnChange();
+                    _this.RichContentEditorInstance.DialogManager.CloseDialog(dialog);
+                    return true;
+                });
+            });
+
+            menu.append(editClassesItem)
+        }
+
         const deleteItem = $(`<button type="button" href="javascript:" class="rce-menu-item"><i class="rce-menu-icon fas fa-trash"></i> <span>${_this.RichContentEditorInstance.Locale.Delete}</span></button>`);
         deleteItem.click(function () { _this.OnDelete(elem), menu.remove(); });
         menu.append(deleteItem)
 
         RichContentUtils.ShowMenu(menu, buttonOrPosition);
+    }
+
+    protected getActualElement(elem: JQuery<HTMLElement>): JQuery<HTMLElement>
+    {
+        return elem;
+    }
+
+    public RegisterCssClasses(classes: string[])
+    {
+        this._registeredCssClasses = this._registeredCssClasses.concat(classes);
     }
 
     private showToolbar(elem: JQuery<HTMLElement>)
@@ -210,5 +278,38 @@ class RichContentBaseEditor
             target.append(element);
         }
         this.SetupEditor(element);
+    }
+
+    private getCssClassesDialog()
+    {
+        let dialog = $('#' + this.RichContentEditorInstance.EditorId + ' .css-classes-dialog');
+        if (!dialog.length)
+        {
+            dialog = $(this.getCssClassesDialogHtml(this.RichContentEditorInstance.EditorId));
+            const list = $('.rce-checkbox-list', dialog);
+            for (var index in this._registeredCssClasses)
+            {
+                const cls = this._registeredCssClasses[index];
+                var checkBox = $(`<label class="rce-checkbox"><input data-value="${cls}" type="checkbox"><span>${cls}</span></label>`);
+                list.append(checkBox);
+            }
+            dialog.appendTo($('#' + this.RichContentEditorInstance.EditorId));
+        }
+        return dialog;
+    }
+
+    private getCssClassesDialogHtml(id: string): string
+    {
+        return `
+            <div class="rce-dialog css-classes-dialog">
+                <div class="rce-dialog-content">
+                    <div class="rce-dialog-title">${this.RichContentEditorInstance.Locale.EditClasses}</div>
+                    <div class="rce-checkbox-list"></div>
+                </div>
+                <div class="rce-dialog-footer">
+                    <a href="javascript:" class="rce-button rce-button-flat rce-close-dialog">${this.RichContentEditorInstance.DialogManager.Locale.DialogCancelButton}</a>
+                    <a href="javascript:" class="rce-button rce-submit-dialog">${this.RichContentEditorInstance.DialogManager.Locale.DialogSaveButton}</a>
+                </div>
+            </div>`;
     }
 }

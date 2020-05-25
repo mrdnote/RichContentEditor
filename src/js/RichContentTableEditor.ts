@@ -49,17 +49,29 @@
 
     public Clean(elem: JQuery<HTMLElement>)
     {
+        if (elem.hasClass('col'))
+        {
+            var alignment = this.getTableColumnAlignment(elem);
+            this.setFrameworkColumnAlignment(elem, alignment);
+            this.cleanEditorColumnAlignment(elem);
+        }
+
         if (elem.hasClass('inner') && elem.parent().hasClass('col'))
         {
             this.RichContentEditorInstance.EliminateElement(elem);
         }
 
-        if (elem.hasClass('rce-table'))
+        if (elem.hasClass('rce-table')) 
         {
-            this.RichContentEditorInstance.EliminateElement(elem);
+            elem.removeClass('rce-table').addClass('table');
         }
 
         super.Clean(elem);
+    }
+
+    public AllowInTableCell(): boolean
+    {
+        return true;
     }
 
     private addTableRow(table: JQuery<HTMLElement>)
@@ -160,19 +172,19 @@
 
     public GetDetectionSelectors(): string
     {
-        return '.row,.col';
+        return '.table,.row,.col';
     }
 
     public Import(targetElement: JQuery<HTMLElement>, source: JQuery<HTMLElement>)
     {
         const _this = this;
 
-        if (source.is('.row') && source.closest('.rce-table').length === 0)
+        if (source.is('.table'))
         {
-            var table = $('<div class="rce-table"></div>');
-            var rows = source.parent().find('.row').clone();
+            var table = $('<div class="rce-table"></div>').addClass(source.attr('class')).removeClass('table');
+            var rows = source.find(' > .row').clone();
             rows.addClass(['rce-editor-wrapper', 'rce-editor-wrapper-keep']);
-            var cols = rows.find('.col');
+            var cols = rows.find(' > .col');
             cols.addClass(['rce-editor-wrapper', 'rce-editor-wrapper-keep']);
             table.append(rows);
             rows.each(function ()
@@ -182,31 +194,14 @@
             cols.each(function ()
             {
                 var inner = $('<div class="inner"></div>');
-                var contents = $(this).contents();
-                contents.each(function ()
-                {
-                    for (let i = 0; i < _this.RichContentEditorInstance.RegisteredEditors.length; i++)
-                    {
-                        var editor = _this.RichContentEditorInstance.RegisteredEditors[i];
-                        if (editor.AllowInTableCell)
-                        {
-                            let importEl;
-                            if (this.nodeType === 3)
-                            {
-                                importEl = $(`<div>${this.nodeValue}</div>`);
-                            }
-                            else
-                            {
-                                importEl = $(this) as JQuery<HTMLElement>;
-                            }
-                            editor.Import(inner, importEl);
-                        }
-                    }
-                });
-                //inner.append($(this).html());
+                _this.RichContentEditorInstance.ImportChildren(inner, $(this), true, false);
+
+                var alignment = _this.getFrameworkTableColumnAlignment($(this));
+                _this.setEditorColumnAlignment($(this), alignment);
 
                 $(this).empty();
                 $(this).append(inner);
+
                 _this.attachColumn($(this));
             });
             this.SetupEditor(rows, true);
@@ -262,16 +257,18 @@
         var result: ContextCommand[] = [];
         var editors = this.RichContentEditorInstance.RegisteredEditors;
         var gridSelector = this.RichContentEditorInstance.GridSelector;
+        var editorId = this.RichContentEditorInstance.EditorId;
 
-        for (let i = 0; i < editors.length; i++)
+        for (let key in editors)
         {
-            const editor = editors[i];
+            const editor = editors[key];
             if (editor.AllowInTableCell())
             {
                 var insertCommand = new ContextCommand(editor.GetMenuLabel(), editor.GetMenuIconClasses(), function (elem)
                 {
                     let inner = elem.find('.inner');
                     editor.Insert(inner);
+                    _this.OnChange();
                     if ((window as any).Sortable)
                     {
                         (window as any).Sortable.create(inner[0], {
@@ -284,13 +281,26 @@
             }
         }
 
-        var widthCommand = new ContextCommand(this._locale.WidthMenuLabel, 'fas fa-arrows-alt-h', function (elem)
+        var widthCommand = new ContextCommand(this._locale.SettingsMenuLabel, 'fas fa-cog', function (elem)
         {
             let dialog = _this.getColumnWidthDialog();
             $('input.rce-column-width-s', dialog).val(_this.getTableColumnWidth(elem, _this.RichContentEditorInstance.GridFramework.GetSmallPrefix(), true));
             $('input.rce-column-width-m', dialog).val(_this.getTableColumnWidth(elem, _this.RichContentEditorInstance.GridFramework.GetMediumPrefix(), false));
             $('input.rce-column-width-l', dialog).val(_this.getTableColumnWidth(elem, _this.RichContentEditorInstance.GridFramework.GetLargePrefix(), false));
             $('input.rce-column-width-xl', dialog).val(_this.getTableColumnWidth(elem, _this.RichContentEditorInstance.GridFramework.GetExtraLargePrefix(), false));
+            const alignment = _this.getTableColumnAlignment(elem);
+            if (alignment === ColumnAlignment.Center)
+            {
+                $('#' + editorId + '_AlignCenter').prop('checked', true);
+            }
+            else if (alignment === ColumnAlignment.Right)
+            {
+                $('#' + editorId + '_AlignRight').prop('checked', true);
+            }
+            else 
+            {
+                $('#' + editorId + '_AlignLeft').prop('checked', true);
+            }
             _this.RichContentEditorInstance.GridFramework.UpdateFields();
             dialog.data('elem', elem);
 
@@ -309,6 +319,17 @@
                 elem.addClass(gridFramework.GetMediumPrefix() + $('input.rce-column-width-m', dialog).val());
                 elem.addClass(gridFramework.GetLargePrefix() + $('input.rce-column-width-l', dialog).val());
                 elem.addClass(gridFramework.GetExtraLargePrefix() + $('input.rce-column-width-xl', dialog).val());
+                let alignment = ColumnAlignment.Left;
+                if ($('#' + editorId + '_AlignCenter').prop('checked'))
+                {
+                    alignment = ColumnAlignment.Center;
+                }
+                else if ($('#' + editorId + '_AlignRight').prop('checked'))
+                {
+                    alignment = ColumnAlignment.Right;
+                }
+                _this.setEditorColumnAlignment(elem, alignment);
+                _this.OnChange();
                 _this.RichContentEditorInstance.DialogManager.CloseDialog($(gridSelector + ' .column-width-dialog'));
                 return true;
             });
@@ -318,15 +339,65 @@
         return result;
     }
 
-    private getColumnWidthDialog()
+    private setEditorColumnAlignment(elem: JQuery<HTMLElement>, alignment: ColumnAlignment)
     {
-        let dialog = $('#' + this.RichContentEditorInstance.EditorId + ' .column-width-dialog');
-        if (!dialog.length)
+        const gridFramework = this.RichContentEditorInstance.GridFramework;
+        elem.removeClass([gridFramework.GetColumnLeftAlignClass(), gridFramework.GetColumnCenterAlignClass(), gridFramework.GetColumnRightAlignClass()]);
+        if (alignment === ColumnAlignment.Center)
         {
-            dialog = $(this.getColumnWidthDialogHtml(this.RichContentEditorInstance.EditorId));
-            dialog.appendTo($('#' + this.RichContentEditorInstance.EditorId));
+            elem.addClass(gridFramework.GetColumnCenterAlignClass());
         }
-        return dialog;
+        else if (alignment === ColumnAlignment.Right)
+        {
+            elem.addClass(gridFramework.GetColumnRightAlignClass());
+        }
+        else 
+        {
+            elem.addClass(gridFramework.GetColumnLeftAlignClass());
+        }
+    }
+
+    private setFrameworkColumnAlignment(elem: JQuery<HTMLElement>, alignment: ColumnAlignment)
+    {
+        this.cleanEditorColumnAlignment(elem);
+        if (alignment === ColumnAlignment.Center)
+        {
+            elem.addClass('rce-col-align-center');
+        }
+        else if (alignment === ColumnAlignment.Right)
+        {
+            elem.addClass('rce-col-align-right');
+        }
+        else 
+        {
+            elem.addClass('rce-col-align-left');
+        }
+    }
+
+    private cleanEditorColumnAlignment(elem: JQuery<HTMLElement>)
+    {
+        elem.removeClass(['rce-col-align-left', 'rce-col-align-center', 'rce-col-align-right']);
+    }
+
+    private getTableColumnAlignment(elem: JQuery<HTMLElement>): ColumnAlignment
+    {
+        if (elem.hasClass('rce-col-align-left'))
+            return ColumnAlignment.Left;
+        if (elem.hasClass('rce-col-align-center'))
+            return ColumnAlignment.Center;
+        if (elem.hasClass('rce-col-align-right'))
+            return ColumnAlignment.Right;
+    }
+
+    private getFrameworkTableColumnAlignment(elem: JQuery<HTMLElement>): ColumnAlignment
+    {
+        const gridFramework = this.RichContentEditorInstance.GridFramework;
+        if (elem.hasClass(gridFramework.GetColumnLeftAlignClass()))
+            return ColumnAlignment.Left;
+        if (elem.hasClass(gridFramework.GetColumnCenterAlignClass()))
+            return ColumnAlignment.Center;
+        if (elem.hasClass(gridFramework.GetColumnRightAlignClass()))
+            return ColumnAlignment.Right;
     }
 
     private getRowContextCommands(_elem: JQuery<HTMLElement>): ContextCommand[]
@@ -338,6 +409,7 @@
         var insertColumnCommand = new ContextCommand(this._locale.InsertColumnMenuLabel, 'fas fa-indent', function (elem)
         {
             _this.addTableColumn(elem);
+            _this.OnChange();
             if ((window as any).Sortable)
             {
                 (window as any).Sortable.create(elem[0], {
@@ -360,10 +432,32 @@
         var insertRowCommand = new ContextCommand(this._locale.InsertRowMenuLabel, 'fas fa-indent', function (elem)
         {
             _this.addTableRow(elem.find('.rce-table'));
+            _this.OnChange();
         });
         result.push(insertRowCommand);
 
         return result;
+    }
+
+    protected getActualElement(elem: JQuery<HTMLElement>): JQuery<HTMLElement>
+    {
+        if (elem.hasClass('rce-table-wrapper'))
+        {
+            return elem.find(' > .rce-table');
+        }
+
+        return elem;
+    }
+
+    private getColumnWidthDialog()
+    {
+        let dialog = $('#' + this.RichContentEditorInstance.EditorId + ' .column-width-dialog');
+        if (!dialog.length)
+        {
+            dialog = $(this.getColumnWidthDialogHtml(this.RichContentEditorInstance.EditorId));
+            dialog.appendTo($('#' + this.RichContentEditorInstance.EditorId));
+        }
+        return dialog;
     }
 
     private getColumnWidthDialogHtml(id: string): string
@@ -373,27 +467,48 @@
         return `
             <div class="rce-dialog column-width-dialog">
                 <div class="rce-dialog-content">
-                    <div class="rce-dialog-title">${this._locale.ColumnWidthDialogTitle}</div>
-                    <div class="rce-form-field rce-form-field-inline">
-                        <label for="${id}_WidthS" class="rce-label">${this._locale.ColumnWidthSmall}</label>
-                        <input id="${id}_WidthS" class="validate rce-input rce-column-width-s browser-default" type="number" required="required" max="${this.RichContentEditorInstance.GridFramework.GetColumnCount()}" />
-                        <span class="rce-error-text">${validateWidthMessage}</span>
+                    <div class="rce-dialog-title">${this._locale.SettingsDialogTitle}</div>
+                    <div class="rce-left" style="width: 50%; padding-right: 10px;">
+                        <b>${this._locale.ColumnWidthLabel}</b>
+                        <div class="rce-form-field rce-form-field-inline">
+                            <label for="${id}_WidthS" class="rce-label">${this._locale.ColumnWidthSmall}</label>
+                            <input id="${id}_WidthS" class="validate rce-input rce-column-width-s browser-default" type="number" required="required" max="${this.RichContentEditorInstance.GridFramework.GetColumnCount()}" />
+                            <span class="rce-error-text">${validateWidthMessage}</span>
+                        </div>
+                        <div class="rce-form-field rce-form-field-inline">
+                            <label for="${id}_WidthM" class="rce-label">${this._locale.ColumnWidthMedium}</label>
+                            <input id="${id}_WidthM" class="validate rce-input rce-column-width-m browser-default" type="number" required="required" max="${this.RichContentEditorInstance.GridFramework.GetColumnCount()}" />
+                            <span class="rce-error-text">${validateWidthMessage}</span>
+                        </div>
+                        <div class="rce-form-field rce-form-field-inline">
+                            <label for="${id}_WidthL" class="rce-label">${this._locale.ColumnWidthTablet}</label>
+                            <input id="${id}_WidthL" class="validate rce-input rce-column-width-l browser-default" type="number" required="required" max="${this.RichContentEditorInstance.GridFramework.GetColumnCount()}" />
+                            <span class="rce-error-text">${validateWidthMessage}</span>
+                        </div>
+                        <div class="rce-form-field rce-form-field-inline">
+                            <label for="${id}_WidthXL" class="rce-label">${this._locale.ColumnWidthDesktop}</label>
+                            <input id="${id}_WidthXL" class="validate rce-input  rce-column-width-xl browser-default" type="number" required="required" max="${this.RichContentEditorInstance.GridFramework.GetColumnCount()}" />
+                            <span class="rce-error-text">${validateWidthMessage}</span>
+                        </div>
+                        <div class="rce-form-field rce-form-field-inline">
+                            <label class="rce-label">${this._locale.AlignmentLabel}</label>
+                            <div class="rce-input-group">
+                                <label class="rce-radio">
+                                    <input  id="${id}_AlignLeft" name="${id}_Align" type="radio" />
+                                    <span>Left</span>
+                                </label><br/>
+                                <label class="rce-radio">
+                                    <input  id="${id}_AlignCenter" name="${id}_Align" type="radio" />
+                                    <span>Center</span>
+                                </label><br/>
+                                <label class="rce-radio">
+                                    <input  id="${id}_AlignRight" name="${id}_Align" type="radio" />
+                                    <span>Right</span>
+                                </label>
+                            </div>
+                        </div>
                     </div>
-                    <div class="rce-form-field rce-form-field-inline">
-                        <label for="${id}_WidthM" class="rce-label">${this._locale.ColumnWidthMedium}</label>
-                        <input id="${id}_WidthM" class="validate rce-input rce-column-width-m browser-default" type="number" required="required" max="${this.RichContentEditorInstance.GridFramework.GetColumnCount()}" />
-                        <span class="rce-error-text">${validateWidthMessage}</span>
-                    </div>
-                    <div class="rce-form-field rce-form-field-inline">
-                        <label for="${id}_WidthL" class="rce-label">${this._locale.ColumnWidthTablet}</label>
-                        <input id="${id}_WidthL" class="validate rce-input rce-column-width-l browser-default" type="number" required="required" max="${this.RichContentEditorInstance.GridFramework.GetColumnCount()}" />
-                        <span class="rce-error-text">${validateWidthMessage}</span>
-                    </div>
-                    <div class="rce-form-field rce-form-field-inline">
-                        <label for="${id}_WidthXL" class="rce-label">${this._locale.ColumnWidthDesktop}</label>
-                        <input id="${id}_WidthXL" class="validate rce-input  rce-column-width-xl browser-default" type="number" required="required" max="${this.RichContentEditorInstance.GridFramework.GetColumnCount()}" />
-                        <span class="rce-error-text">${validateWidthMessage}</span>
-                    </div>
+                    <div class="rce-clear"></div>
                 </div>
                 <div class="rce-dialog-footer">
                     <a href="javascript:" class="rce-button rce-button-flat rce-close-dialog">${this.RichContentEditorInstance.DialogManager.Locale.DialogCancelButton}</a>
@@ -403,4 +518,4 @@
     }
 }
 
-RichContentBaseEditor.RegisterEditor(RichContentTableEditor);
+RichContentBaseEditor.RegisterEditor('RichContentTableEditor', RichContentTableEditor);

@@ -6,7 +6,12 @@
 
 enum ImageAlignment
 {
-    Fill, Left, Right
+    None, Fill, Left, Right
+}
+
+enum ColumnAlignment
+{
+    Left, Center, Right
 }
 
 class RichContentImageEditor extends RichContentBaseEditor
@@ -38,18 +43,51 @@ class RichContentImageEditor extends RichContentBaseEditor
 
         this._appendElement = targetElement;
 
-        this.RichContentEditorInstance.FileManager.ShowFileSelectionDialog(
-            (url) => { this.InsertImage(url, ImageAlignment.Fill, this._appendElement); return true; }
+        this.showSelectionDialog(null);
+    }
+
+    private showSelectionDialog(elem?: JQuery<HTMLElement>)
+    {
+        const _this = this;
+
+        let url: string = null;
+        let linkUrl: string = null;
+        let lightBox = false;
+        let update = elem !== null;
+        let alignment = ImageAlignment.Fill;
+
+        if (elem)
+        {
+            url = $('.rce-image', elem).attr('src');
+            linkUrl = $('a', elem).attr('href');
+            lightBox = $('a[data-featherlight]', elem).length > 0;
+            alignment = this.getImageAlignment(elem);
+        }
+
+        this.RichContentEditorInstance.FileManager.ShowFileSelectionDialog(url, linkUrl, lightBox,
+            (url, linkUrl, lightBox) =>
+            {
+                _this.OnChange();
+                if (update)
+                {
+                    this.updateImage(elem, url, linkUrl, lightBox, alignment);
+                }
+                else 
+                {
+                    this.InsertImage(url, linkUrl, lightBox, alignment, this._appendElement);
+                }
+                return true;
+            }
         );
     }
 
-    public InsertImage(url: string, alignment: ImageAlignment, targetElement?: JQuery<HTMLElement>)
+    public InsertImage(url, linkUrl: string, lightBox: boolean, alignment: ImageAlignment, targetElement?: JQuery<HTMLElement>)
     {
-        const img = $('<img class="rce-image"></img>');
-        img.attr('src', url);
         const imgWrapper = $('<div class="rce-image-wrapper"></div>');
-        imgWrapper.addClass(this.getImageAlignmentClass(alignment));
+        const img = $('<img class="rce-image"></img>');
         imgWrapper.append(img);
+
+        this.updateImage(imgWrapper, url, linkUrl, lightBox, alignment);
 
         if (!targetElement)
         {
@@ -59,6 +97,42 @@ class RichContentImageEditor extends RichContentBaseEditor
         this.Attach(imgWrapper, targetElement);
     }
 
+    private updateImage(elem: JQuery<HTMLElement>, url: string, linkUrl: string, lightBox: boolean, alignment: ImageAlignment)
+    {
+        const img = elem.find('.rce-image');
+        img.attr('src', url);
+        let childToAppend: JQuery<HTMLElement> = null;
+        if (linkUrl)
+        {
+            let a = elem.find('a').first();
+            if (!a.length)
+            {
+                a = $(`<a href="${linkUrl}"></a>`);
+                a.append(img.detach());
+                childToAppend = a;
+            }
+            if (lightBox && RichContentUtils.HasFeatherLight())
+            {
+                //a.attr('href', 'javascript:');
+                if (RichContentUtils.IsVideoUrl(linkUrl))
+                {
+                    const mimeType = RichContentUtils.GetMimeType(linkUrl)
+                    a.attr('data-featherlight', `<video class="video-js js-video" preload="auto" controls="" autoplay="autoplay"><source src="${linkUrl}" type="${mimeType}"></video>`);
+                }
+                else
+                {
+                    a.attr('data-featherlight', linkUrl);
+                }
+            }
+        }
+        this.removeEditorAlignmentClasses(elem);
+        elem.addClass(this.getImageAlignmentClass(alignment));
+        if (childToAppend)
+        {
+            elem.append(childToAppend);
+        }
+    }
+
     private getImageAlignmentClass(alignment: ImageAlignment): string
     {
         switch (alignment)
@@ -66,8 +140,17 @@ class RichContentImageEditor extends RichContentBaseEditor
             case ImageAlignment.Left: return 'rce-image-left';
             case ImageAlignment.Right: return 'rce-image-right';
             case ImageAlignment.Fill: return 'rce-image-block';
+            case ImageAlignment.None: return '';
             default: throw `Unexpected alignment value: ${alignment}`;
         }
+    }
+
+    private getImageAlignment(elem: JQuery<HTMLElement>): ImageAlignment
+    {
+        if (elem.hasClass('rce-image-left')) return ImageAlignment.Left;
+        if (elem.hasClass('rce-image-block')) return ImageAlignment.Fill;
+        if (elem.hasClass('rce-image-right')) return ImageAlignment.Right;
+        return ImageAlignment.None;
     }
 
     public GetDetectionSelectors(): string
@@ -77,25 +160,55 @@ class RichContentImageEditor extends RichContentBaseEditor
 
     public Import(targetElement: JQuery<HTMLElement>, source: JQuery<HTMLElement>)
     {
-        if (source.is('img'))
+        if (source.is('img') || source.is('a') && source.children().first().is('img'))
         {
             let clone = source.clone();
-            clone.addClass('rce-image');
             const imgWrapper = $('<div class="rce-image-wrapper"></div>');
-            let alignment = ImageAlignment.Fill;
-            if (clone.hasClass(this.RichContentEditorInstance.GridFramework.GetLeftAlignClass()))
+            imgWrapper.append(clone);
+            const img = imgWrapper.find('img');
+            img.addClass('rce-image');
+            let alignment = ImageAlignment.None;
+            if (img.hasClass(this.RichContentEditorInstance.GridFramework.GetLeftAlignClass()))
             {
                 alignment = ImageAlignment.Left;
+                img.removeClass(this.RichContentEditorInstance.GridFramework.GetLeftAlignClass());
             }
-            else if (clone.hasClass(this.RichContentEditorInstance.GridFramework.GetRightAlignClass()))
+            else if (img.hasClass(this.RichContentEditorInstance.GridFramework.GetRightAlignClass()))
             {
                 alignment = ImageAlignment.Right;
+                img.removeClass(this.RichContentEditorInstance.GridFramework.GetRightAlignClass());
             }
-            imgWrapper.addClass(this.getImageAlignmentClass(alignment));
-            source.replaceWith(imgWrapper.append(clone));
+            else if (img.hasClass(this.RichContentEditorInstance.GridFramework.GetBlockAlignClass()))
+            {
+                alignment = ImageAlignment.Fill;
+                img.removeClass(this.RichContentEditorInstance.GridFramework.GetBlockAlignClass());
+            }
+            else if (this.hasCss(img, this.RichContentEditorInstance.GridFramework.GetBlockAlignCss()))
+            {
+                alignment = ImageAlignment.Fill;
+                img.css(this.RichContentEditorInstance.GridFramework.GetBlockAlignCss().Key, '');
+            }
+            if (alignment !== ImageAlignment.None)
+            {
+                imgWrapper.addClass(this.getImageAlignmentClass(alignment));
+            }
+            source.replaceWith(imgWrapper);
 
             this.Attach(imgWrapper, targetElement);
         }
+    }
+
+    private hasCss(elem: JQuery<HTMLElement>, css: KeyValue<string>): boolean
+    {
+        if (css === null)
+        {
+            return false;
+        }
+
+        if (elem.css(css.Key) === css.Value)
+            return true;
+
+        return false;
     }
 
     public GetMenuLabel(): string
@@ -113,13 +226,32 @@ class RichContentImageEditor extends RichContentBaseEditor
         return true;
     }
 
+    public AllowInLink(): boolean
+    {
+        return true;
+    }
+
     public Clean(elem: JQuery<HTMLElement>): void
     {
         var wrapper = elem.closest('.rce-image-wrapper');
         if (wrapper.hasClass('rce-image-left'))
+        {
             elem.addClass(this.RichContentEditorInstance.GridFramework.GetLeftAlignClass());
+            const css = this.RichContentEditorInstance.GridFramework.GetLeftAlignCss();
+            if (css != null) elem.css(css.Key, css.Value);
+        }
         if (wrapper.hasClass('rce-image-right'))
+        {
             elem.addClass(this.RichContentEditorInstance.GridFramework.GetRightAlignClass());
+            const css = this.RichContentEditorInstance.GridFramework.GetRightAlignCss();
+            if (css != null) elem.css(css.Key, css.Value);
+        }
+        if (wrapper.hasClass('rce-image-block'))
+        {
+            elem.addClass(this.RichContentEditorInstance.GridFramework.GetBlockAlignClass());
+            const css = this.RichContentEditorInstance.GridFramework.GetBlockAlignCss();
+            if (css != null) elem.css(css.Key, css.Value);
+        }
 
         elem.removeClass('rce-image');
         if (elem.attr('class') === '')
@@ -136,23 +268,47 @@ class RichContentImageEditor extends RichContentBaseEditor
 
     public GetContextCommands(_elem: JQuery<HTMLElement>): ContextCommand[]
     {
+        const _this = this;
+
         var leftCommand = new ContextCommand(this._locale.AlignLeftMenuLabel, 'fas fa-arrow-left', function (elem)
         {
-            elem.removeClass('rce-image-block rce-image-right').addClass('rce-image-left');
+            _this.removeEditorAlignmentClasses(elem);
+            elem.addClass('rce-image-left');
+            _this.OnChange();
         });
 
         var rightCommand = new ContextCommand(this._locale.AlignRightMenuLabel, 'fas fa-arrow-right', function (elem)
         {
-            elem.removeClass('rce-image-block rce-image-left').addClass('rce-image-right');
+            _this.removeEditorAlignmentClasses(elem);
+            elem.addClass('rce-image-right');
+            _this.OnChange();
         });
 
-        var blockCommand = new ContextCommand(this._locale.BlockAlignMenuLabel, 'fas fa-arrows-alt-h', function (elem)
+        var blockCommand = new ContextCommand(this._locale.BlockAlignMenuLabel, 'fas fa-expand-arrows-alt', function (elem)
         {
-            elem.removeClass('rce-image-left rce-image-right').addClass('rce-image-block');
+            _this.removeEditorAlignmentClasses(elem);
+            elem.addClass('rce-image-block');
+            _this.OnChange();
         });
 
-        return [leftCommand, rightCommand, blockCommand];
+        var defaultCommand = new ContextCommand(this._locale.DefaultSizeMenuLabel, 'fas fa-compress-arrows-alt', function (elem)
+        {
+            _this.removeEditorAlignmentClasses(elem);
+            _this.OnChange();
+        });
+
+        var editCommand = new ContextCommand(this._locale.EditMenuLabel, 'fas fa-cog', function (elem)
+        {
+            _this.showSelectionDialog(elem);
+        });
+
+        return [leftCommand, rightCommand, blockCommand, defaultCommand, editCommand];
+    }
+
+    private removeEditorAlignmentClasses(elem: JQuery<HTMLElement>)
+    {
+        elem.removeClass('rce-image-left rce-image-block rce-image-right');
     }
 }
 
-RichContentBaseEditor.RegisterEditor(RichContentImageEditor);
+RichContentBaseEditor.RegisterEditor('RichContentImageEditor', RichContentImageEditor);

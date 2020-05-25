@@ -7,6 +7,10 @@ declare class GridFrameworkBootstrap extends GridFrameworkBase {
     GetExtraLargePrefix(): string;
     GetRightAlignClass?(): string;
     GetLeftAlignClass?(): string;
+    GetBlockAlignClass?(): string;
     GetRightAlignCss?(): KeyValue<string>;
     GetLeftAlignCss?(): KeyValue<string>;
+    GetColumnLeftAlignClass(): string;
+    GetColumnCenterAlignClass(): string;
+    GetColumnRightAlignClass(): string;
 }

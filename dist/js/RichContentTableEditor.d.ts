@@ -7,6 +7,7 @@ declare class RichContentTableEditor extends RichContentBaseEditor {
     OnDelete(elem: JQuery<HTMLElement>): void;
     Insert(targetElement?: JQuery<HTMLElement>): void;
     Clean(elem: JQuery<HTMLElement>): void;
+    AllowInTableCell(): boolean;
     private addTableRow;
     private attachRow;
     private addTableColumn;
@@ -19,8 +20,14 @@ declare class RichContentTableEditor extends RichContentBaseEditor {
     GetContextButtonText(elem: JQuery<HTMLElement>): string;
     GetContextCommands(elem: JQuery<HTMLElement>): ContextCommand[];
     private getColumnContextCommands;
-    private getColumnWidthDialog;
+    private setEditorColumnAlignment;
+    private setFrameworkColumnAlignment;
+    private cleanEditorColumnAlignment;
+    private getTableColumnAlignment;
+    private getFrameworkTableColumnAlignment;
     private getRowContextCommands;
     private getTableContextCommands;
+    protected getActualElement(elem: JQuery<HTMLElement>): JQuery<HTMLElement>;
+    private getColumnWidthDialog;
     private getColumnWidthDialogHtml;
 }

@@ -55,6 +55,11 @@
     background-color: #999;
 }
 
+.rce-image-wrapper {
+    display: inline-block;
+    position: relative;
+}
+
 .rce-image-wrapper .rce-image {
     width: 100%;
 }
@@ -73,8 +78,28 @@
     margin-left: 5px;
 }
 
-.rce-image-wrapper {
+.rce-link-wrapper {
+    display: inline-block;
     position: relative;
+}
+
+.rce-link-wrapper .rce-link {
+    display: inline-block;
+}
+
+.rce-icon-wrapper {
+    display: inline-block;
+    position: relative;
+}
+
+.rce-icon-wrapper.rce-icon-left {
+    float: left;
+    margin-right: 5px;
+}
+
+.rce-icon-wrapper.rce-icon-right {
+    float: right;
+    margin-left: 5px;
 }
 
 .rce-grid .rce-textarea-wrapper {
@@ -111,6 +136,15 @@
     padding-bottom: 0;
     margin-bottom: 5px;
     border: dotted 1px silver;
+}
+
+.rce-grid-wrapper.edit-mode .rce-grid a .rce-editor-wrapper {
+    padding-left: 0;
+    float: left;
+}
+
+.rce-grid-wrapper.edit-mode .rce-grid a .rce-textarea-editor {
+    margin-left: 20px;
 }
 
 .rce-table-wrapper {
@@ -152,6 +186,18 @@
 .rce-grid-wrapper.edit-mode .rce-grid .rce-table .row .col .inner {
     min-height: 2em;
     padding-left: 16px;
+}
+
+.rce-grid-wrapper .rce-grid .rce-table .row .col.rce-col-align-left .inner {
+    text-align: left;
+}
+
+.rce-grid-wrapper .rce-grid .rce-table .row .col.rce-col-align-center .inner {
+    text-align: center;
+}
+
+.rce-grid-wrapper .rce-grid .rce-table .row .col.rce-col-align-right .inner {
+    text-align: right;
 }
 
 .rce-editor-ui-wrapper {
@@ -251,6 +297,10 @@
 
 .rce-dialog {
     display: none;
+}
+
+.rce-dialog .rce-dialog-content {
+    padding-bottom: 10px;
 }
 
 .rce-modal-backdrop {
@@ -400,6 +450,10 @@ ul.rce-tabs {
     float: right;
 }
 
+.rce-fill {
+    width: 100%;
+}
+
 .rce-label {
     font-size: smaller;
     margin-bottom: 0;
@@ -434,14 +488,46 @@ ul.rce-tabs {
     height: 0;
 }
 
-.rce-form-field.rce-form-field-inline .rce-label {
+.rce-dialog-content .rce-form-field.rce-form-field-inline .rce-label {
+    width: 25%;
+    float: left;
+}
+
+.rce-dialog-content .rce-form-field.rce-form-field-inline .rce-error-text {
+    margin-left: 25%;
+}
+
+.rce-dialog-content .rce-left .rce-form-field.rce-form-field-inline .rce-label {
+    width: 50%;
+}
+
+.rce-dialog-content .rce-form-field.rce-form-field-inline .rce-input {
+    width: 75%;
+    float: left;
+}
+
+.rce-dialog-content .rce-left .rce-form-field.rce-form-field-inline .rce-input {
+    width: 50%;
+}
+
+.rce-form-field.rce-form-field-inline .rce-input-group {
     width: 50%;
     float: left;
 }
 
-.rce-form-field.rce-form-field-inline .rce-input {
-    width: 50%;
-    float: left;
+label.rce-radio,
+label.rce-checkbox {
+    font-size: smaller;
+    margin-bottom: 0;
+}
+
+label.rce-radio input,
+label.rce-checkbox input {
+    margin-right: 5px;
+}
+
+.rce-checkbox-list .rce-checkbox {
+    display: block;
 }
 
 .rce-hide {
@@ -468,4 +554,16 @@ ul.rce-tabs {
 
 .rce-toolbar .rce-button i {
     font-size: smaller;
+}
+
+.col.rce-order-xl1 {
+    order: 1;
+}
+
+.col.rce-order-xl2 {
+    order: 2;
+}
+
+.col.rce-order-xl3 {
+    order: 3;
 }

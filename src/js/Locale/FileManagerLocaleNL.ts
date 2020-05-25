@@ -2,9 +2,11 @@
 {
     FileSelectionDialogTitle = "Afbeelding invoegen";
     ByUrlTab = "Via URL";
+    ByUrlMessage = "Voer de URL in het Afbeeldingsurl veld hieronder in.";
     ByUploadTab = "Via upload";
     BySelectionTab = "Selecteer bestand";
     UrlField = "Afbeeldingsurl";
+    LinkField = "Link URL (optioneel)"; 
     UploadButton = "Uploaden";
     NoUploadPlaceholder = "Nog geen bestand geüploaded...";
     NoSelectionPlaceholder = "Nog geen bestand geselecteerd...";
