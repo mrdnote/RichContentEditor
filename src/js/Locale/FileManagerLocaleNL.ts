@@ -1,19 +1,26 @@
 ﻿class FileManagerLocaleNL extends FileManagerLocale
 {
-    FileSelectionDialogTitle = "Afbeelding invoegen";
-    ByUrlTab = "Via URL";
-    ByUrlMessage = "Voer de URL in het Afbeeldingsurl veld hieronder in.";
+    ByUrlTab = "Via url";
     ByUploadTab = "Via upload";
     BySelectionTab = "Selecteer bestand";
-    UrlField = "Afbeeldingsurl";
-    LinkField = "Link URL (optioneel)"; 
+
+    EnterUrlValidation = "Voeg een correcte url in";
+
+    ImageByUrlMessage = "Voer de URL in het Afbeeldingsurl veld hieronder in.";
+    ImageSelectionDialogTitle = "Afbeelding invoegen";
+    ImageUrlField = "Afbeeldingsurl"; 
+
+    LinkByUrlMessage = "Voer de URL in het Linkurl veld hieronder in.";
+    LinkSelectionDialogTitle = "Link invoegen";
+    LinkUrlField = "Link url"; 
+
     UploadButton = "Uploaden";
     NoUploadPlaceholder = "Nog geen bestand geüploaded...";
     NoSelectionPlaceholder = "Nog geen bestand geselecteerd...";
-    EnterUrlValidation = "Voeg een correcte afbeeldingsurl in";
     UploadValidation = "Upload een bestand om verder te gaan";
     SelectValidation = "Selecteer een bestand om verder te gaan";
     LoadingProgressMessage = "Bezig met laden...";
+    OpenInNewTagCheckBox = "In nieuw tabblad openen";
 }
 
 FileManager.RegisterLocale(FileManagerLocaleNL, 'NL');

@@ -51,43 +51,39 @@ class RichContentImageEditor extends RichContentBaseEditor
         const _this = this;
 
         let url: string = null;
-        let linkUrl: string = null;
-        let lightBox = false;
         let update = elem !== null;
         let alignment = ImageAlignment.Fill;
 
         if (elem)
         {
             url = $('.rce-image', elem).attr('src');
-            linkUrl = $('a', elem).attr('href');
-            lightBox = $('a[data-featherlight]', elem).length > 0;
             alignment = this.getImageAlignment(elem);
         }
 
-        this.RichContentEditorInstance.FileManager.ShowFileSelectionDialog(url, linkUrl, lightBox,
-            (url, linkUrl, lightBox) =>
+        this.RichContentEditorInstance.FileManager.ShowFileSelectionDialog(url, false, false, true,
+            (url, _lightBox, _targetBlank) =>
             {
                 _this.OnChange();
                 if (update)
                 {
-                    this.updateImage(elem, url, linkUrl, lightBox, alignment);
+                    this.updateImage(elem, url, alignment);
                 }
                 else 
                 {
-                    this.InsertImage(url, linkUrl, lightBox, alignment, this._appendElement);
+                    this.InsertImage(url, alignment, this._appendElement);
                 }
                 return true;
             }
         );
     }
 
-    public InsertImage(url, linkUrl: string, lightBox: boolean, alignment: ImageAlignment, targetElement?: JQuery<HTMLElement>)
+    public InsertImage(url: string, alignment: ImageAlignment, targetElement?: JQuery<HTMLElement>)
     {
         const imgWrapper = $('<div class="rce-image-wrapper"></div>');
         const img = $('<img class="rce-image"></img>');
         imgWrapper.append(img);
 
-        this.updateImage(imgWrapper, url, linkUrl, lightBox, alignment);
+        this.updateImage(imgWrapper, url, alignment);
 
         if (!targetElement)
         {
@@ -97,34 +93,11 @@ class RichContentImageEditor extends RichContentBaseEditor
         this.Attach(imgWrapper, targetElement);
     }
 
-    private updateImage(elem: JQuery<HTMLElement>, url: string, linkUrl: string, lightBox: boolean, alignment: ImageAlignment)
+    private updateImage(elem: JQuery<HTMLElement>, url: string, alignment: ImageAlignment)
     {
         const img = elem.find('.rce-image');
         img.attr('src', url);
         let childToAppend: JQuery<HTMLElement> = null;
-        if (linkUrl)
-        {
-            let a = elem.find('a').first();
-            if (!a.length)
-            {
-                a = $(`<a href="${linkUrl}"></a>`);
-                a.append(img.detach());
-                childToAppend = a;
-            }
-            if (lightBox && RichContentUtils.HasFeatherLight())
-            {
-                //a.attr('href', 'javascript:');
-                if (RichContentUtils.IsVideoUrl(linkUrl))
-                {
-                    const mimeType = RichContentUtils.GetMimeType(linkUrl)
-                    a.attr('data-featherlight', `<video class="video-js js-video" preload="auto" controls="" autoplay="autoplay"><source src="${linkUrl}" type="${mimeType}"></video>`);
-                }
-                else
-                {
-                    a.attr('data-featherlight', linkUrl);
-                }
-            }
-        }
         this.removeEditorAlignmentClasses(elem);
         elem.addClass(this.getImageAlignmentClass(alignment));
         if (childToAppend)

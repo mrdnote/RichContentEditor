@@ -12,13 +12,11 @@ declare class RichContentLinkEditor extends RichContentBaseEditor {
     static RegisterLocale?<T extends typeof RichContentLinkEditorLocale>(localeType: T, language: string): void;
     Init(richContentEditor: RichContentEditor): void;
     Insert(targetElement?: JQuery<HTMLElement>): void;
-    private showEditorDialog;
-    private getLinkEditorDialog;
-    private getLinkEditorDialogHtml;
+    private showSelectionDialog;
     InsertLink(url: string, lightBox: boolean, alignment: LinkAlignment, targetElement?: JQuery<HTMLElement>): void;
     private updateLink;
-    private getImageAlignmentClass;
-    private getImageAlignment;
+    private getAlignmentClass;
+    private getAlignment;
     GetDetectionSelectors(): string;
     protected getActualElement(elem: JQuery<HTMLElement>): JQuery<HTMLElement>;
     Import(targetElement: JQuery<HTMLElement>, source: JQuery<HTMLElement>): void;

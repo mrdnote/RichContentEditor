@@ -287,7 +287,7 @@ var GridFrameworkBase = /** @class */ (function () {
     function GridFrameworkBase() {
     }
     GridFrameworkBase.Create = function (gridFramework) {
-        if (gridFramework === null) {
+        if (RichContentUtils.IsNullOrEmpty(gridFramework)) {
             return new GridFrameworkBase();
         }
         if (!GridFrameworkBase._registrations.hasOwnProperty(gridFramework))
@@ -409,42 +409,36 @@ var FileManager = /** @class */ (function () {
             },
         });
     };
-    FileManager.prototype.ShowFileSelectionDialog = function (url, linkUrl, lightBox, action) {
+    FileManager.prototype.ShowFileSelectionDialog = function (url, lightBox, imageMode, action) {
         var _this_1 = this;
         var gridSelector = this._richContentEditor.GridSelector;
-        var dialog = this.getFileSelectionDialog();
+        var dialog = this.getFileSelectionDialog(imageMode);
         if (!this._richContentEditor.Options.UploadUrl)
             dialog.find("a[href=\"#" + this._richContentEditor.EditorId + "_ByUpload\"]").closest('li').addClass('rce-hide');
         if (!this._richContentEditor.Options.FileListUrl)
             dialog.find("a[href=\"#" + this._richContentEditor.EditorId + "_BySelection\"]").closest('li').addClass('rce-hide');
         $('.image-url', dialog).val(url);
-        $('.link-url', dialog).val(linkUrl);
         $('.lightbox-check', dialog).prop('checked', lightBox);
         this._richContentEditor.DialogManager.ShowDialog(dialog, function (dialog) {
             var valid = _this_1._richContentEditor.DialogManager.ValidateFields(gridSelector, $('input:not(:file)', dialog));
             if (!valid)
                 return;
             var url = $('.image-url', dialog).val().toString();
-            var linkUrl = $('.link-url', dialog).val().toString();
             var lightBox = $('.lightbox-check', dialog).prop('checked');
-            var ok = action(url, linkUrl, lightBox);
+            var ok = action(url, lightBox);
             if (!ok)
                 return false;
             $('.image-url', dialog).val('');
-            $('.link-url', dialog).val('');
             return true;
         });
     };
-    FileManager.prototype.getFileSelectionDialog = function () {
+    FileManager.prototype.getFileSelectionDialog = function (imageMode) {
         var _this = this;
         var editorId = this._richContentEditor.EditorId;
         var dialog = $('#' + editorId + ' .file-dialog');
         if (!dialog.length) {
-            dialog = $(this.getFileSelectionDialogHtml(this._richContentEditor.EditorId));
+            dialog = $(this.getFileSelectionDialogHtml(this._richContentEditor.EditorId, imageMode));
             dialog.appendTo($('#' + editorId));
-            if (RichContentUtils.HasFeatherLight()) {
-                $('.featherlight-input-group', dialog).removeClass('hide');
-            }
             $('.rce-tabs .rce-tab a', dialog).click(function (e) {
                 e.preventDefault();
                 var tabs = $(this).closest('.rce-tabs').find('.rce-tab');
@@ -507,10 +501,14 @@ var FileManager = /** @class */ (function () {
                 _this.updateFileList('#' + _this._richContentEditor.EditorId, dialog);
             });
         }
+        $('.rce-dialog-title', dialog).text(imageMode ? this.Locale.ImageSelectionDialogTitle : this.Locale.LinkSelectionDialogTitle);
+        $("#" + editorId + "_ByUrl").text(imageMode ? this.Locale.ImageByUrlMessage : this.Locale.LinkByUrlMessage);
+        $('.image-url-label').text(imageMode ? this.Locale.ImageUrlField : this.Locale.LinkUrlField);
+        $('.featherlight-input-group', dialog).toggleClass('rce-hide', !RichContentUtils.HasFeatherLight() || imageMode);
         return dialog;
     };
-    FileManager.prototype.getFileSelectionDialogHtml = function (editorId) {
-        return "\n            <div class=\"rce-dialog file-dialog\">\n                <div class=\"rce-dialog-content\">\n                    <div class=\"rce-dialog-title\">" + this.Locale.FileSelectionDialogTitle + "</div>\n                    <div class=\"rce-tab-panel\" style=\"padding: 0;\">\n                        <ul class=\"rce-tabs\">\n                            <li class=\"rce-tab active\"><a href=\"#" + editorId + "_ByUrl\">" + this.Locale.ByUrlTab + "</a></li>\n                            <li class=\"rce-tab\"><a href=\"#" + editorId + "_ByUpload\">" + this.Locale.ByUploadTab + "</a></li>\n                            <li class=\"rce-tab\"><a href=\"#" + editorId + "_BySelection\">" + this.Locale.BySelectionTab + "</a></li>\n                        </ul>\n                        <div id=\"" + editorId + "_ByUrl\" class=\"rce-tab-body active\">\n                            " + this.Locale.ByUrlMessage + "\n                        </div>\n                        <div id=\"" + editorId + "_ByUpload\" class=\"rce-tab-body\">\n                            <div class=\"file-path-wrapper-with-progress\">\n                                <input type=\"file\" class=\"rce-left\">\n                                <div class=\"rce-right\">\n                                    <button type=\"button\" class=\"rce-button upload-button\" style=\"width: 100%;\" disabled=\"disabled\">" + this.Locale.UploadButton + "</button>\n                                </div>\n                                <div class=\"file-path-wrapper-progress\"></div>\n                                <div class=\"rce-clear\"></div>\n                            </div>\n                        </div>\n                        <div id=\"" + editorId + "_BySelection\" class=\"rce-tab-body\">\n                            <div class=\"file-table\">\n                                " + this.Locale.LoadingProgressMessage + "\n                            </div>\n                        </div>\n                    </div>\n                    <div class=\"rce-form-field\">\n                        <label for=\"" + editorId + "_ImageUrl\" class=\"rce-label\">" + this.Locale.UrlField + "</label>\n                        <input id=\"" + editorId + "_ImageUrl\" class=\"image-url validate rce-input\" type=\"url\" required=\"required\" />\n                        <span class=\"rce-error-text\">" + this.Locale.EnterUrlValidation + "</span>\n                    </div>\n                    <div class=\"rce-form-field\">\n                        <label for=\"" + editorId + "_LinkUrl\" class=\"rce-label\">" + this.Locale.LinkField + "</label>\n                        <input id=\"" + editorId + "_LinkUrl\" class=\"link-url rce-input\" type=\"url\" />\n                        <span class=\"rce-error-text\">" + this.Locale.EnterUrlValidation + "</span>\n                    </div>\n                    <div class=\"rce-input-group hide featherlight-input-group\">\n                        <label class=\"rce-radio\">\n                            <input  id=\"" + editorId + "_LightBox\" class=\"lightbox-check\" type=\"checkbox\"/>\n                            <span>Featherlight</span>\n                        </label>\n                    </div>\n                </div>\n                <div class=\"rce-dialog-footer\">\n                    <a href=\"javascript:\" class=\"rce-button rce-button-flat rce-close-dialog\">" + this._richContentEditor.DialogManager.Locale.DialogCancelButton + "</a>\n                    <a href=\"javascript:\" class=\"rce-button rce-submit-dialog\">" + this._richContentEditor.DialogManager.Locale.DialogSaveButton + "</a>\n                </div>\n            </div>";
+    FileManager.prototype.getFileSelectionDialogHtml = function (editorId, imageMode) {
+        return "\n            <div class=\"rce-dialog file-dialog\">\n                <div class=\"rce-dialog-content\">\n                    <div class=\"rce-dialog-title\"></div>\n                    <div class=\"rce-tab-panel\" style=\"padding: 0;\">\n                        <ul class=\"rce-tabs\">\n                            <li class=\"rce-tab active\"><a href=\"#" + editorId + "_ByUrl\">" + this.Locale.ByUrlTab + "</a></li>\n                            <li class=\"rce-tab\"><a href=\"#" + editorId + "_ByUpload\">" + this.Locale.ByUploadTab + "</a></li>\n                            <li class=\"rce-tab\"><a href=\"#" + editorId + "_BySelection\">" + this.Locale.BySelectionTab + "</a></li>\n                        </ul>\n                        <div id=\"" + editorId + "_ByUrl\" class=\"rce-tab-body active\"></div>\n                        <div id=\"" + editorId + "_ByUpload\" class=\"rce-tab-body\">\n                            <div class=\"file-path-wrapper-with-progress\">\n                                <input type=\"file\" class=\"rce-left\">\n                                <div class=\"rce-right\">\n                                    <button type=\"button\" class=\"rce-button upload-button\" style=\"width: 100%;\" disabled=\"disabled\">" + this.Locale.UploadButton + "</button>\n                                </div>\n                                <div class=\"file-path-wrapper-progress\"></div>\n                                <div class=\"rce-clear\"></div>\n                            </div>\n                        </div>\n                        <div id=\"" + editorId + "_BySelection\" class=\"rce-tab-body\">\n                            <div class=\"file-table\">\n                                " + this.Locale.LoadingProgressMessage + "\n                            </div>\n                        </div>\n                    </div>\n                    <div class=\"rce-form-field\">\n                        <label for=\"" + editorId + "_ImageUrl\" class=\"rce-label image-url-label\"></label>\n                        <input id=\"" + editorId + "_ImageUrl\" class=\"image-url validate rce-input\" type=\"url\" required=\"required\" />\n                        <span class=\"rce-error-text\">" + this.Locale.EnterUrlValidation + "</span>\n                    </div>\n                    <div class=\"rce-input-group rce-hide featherlight-input-group\">\n                        <label class=\"rce-radio\">\n                            <input  id=\"" + editorId + "_LightBox\" class=\"lightbox-check\" type=\"checkbox\"/>\n                            <span>Featherlight</span>\n                        </label>\n                    </div>\n                </div>\n                <div class=\"rce-dialog-footer\">\n                    <a href=\"javascript:\" class=\"rce-button rce-button-flat rce-close-dialog\">" + this._richContentEditor.DialogManager.Locale.DialogCancelButton + "</a>\n                    <a href=\"javascript:\" class=\"rce-button rce-submit-dialog\">" + this._richContentEditor.DialogManager.Locale.DialogSaveButton + "</a>\n                </div>\n            </div>";
     };
     FileManager._localeRegistrations = {};
     return FileManager;
@@ -1249,59 +1247,37 @@ var RichContentImageEditor = /** @class */ (function (_super) {
         var _this_1 = this;
         var _this = this;
         var url = null;
-        var linkUrl = null;
-        var lightBox = false;
         var update = elem !== null;
         var alignment = ImageAlignment.Fill;
         if (elem) {
             url = $('.rce-image', elem).attr('src');
-            linkUrl = $('a', elem).attr('href');
-            lightBox = $('a[data-featherlight]', elem).length > 0;
             alignment = this.getImageAlignment(elem);
         }
-        this.RichContentEditorInstance.FileManager.ShowFileSelectionDialog(url, linkUrl, lightBox, function (url, linkUrl, lightBox) {
+        this.RichContentEditorInstance.FileManager.ShowFileSelectionDialog(url, false, true, function (url, _lightBox) {
             _this.OnChange();
             if (update) {
-                _this_1.updateImage(elem, url, linkUrl, lightBox, alignment);
+                _this_1.updateImage(elem, url, alignment);
             }
             else {
-                _this_1.InsertImage(url, linkUrl, lightBox, alignment, _this_1._appendElement);
+                _this_1.InsertImage(url, alignment, _this_1._appendElement);
             }
             return true;
         });
     };
-    RichContentImageEditor.prototype.InsertImage = function (url, linkUrl, lightBox, alignment, targetElement) {
+    RichContentImageEditor.prototype.InsertImage = function (url, alignment, targetElement) {
         var imgWrapper = $('<div class="rce-image-wrapper"></div>');
         var img = $('<img class="rce-image"></img>');
         imgWrapper.append(img);
-        this.updateImage(imgWrapper, url, linkUrl, lightBox, alignment);
+        this.updateImage(imgWrapper, url, alignment);
         if (!targetElement) {
             targetElement = $("#" + this.RichContentEditorInstance.EditorId + " .rce-grid");
         }
         this.Attach(imgWrapper, targetElement);
     };
-    RichContentImageEditor.prototype.updateImage = function (elem, url, linkUrl, lightBox, alignment) {
+    RichContentImageEditor.prototype.updateImage = function (elem, url, alignment) {
         var img = elem.find('.rce-image');
         img.attr('src', url);
         var childToAppend = null;
-        if (linkUrl) {
-            var a = elem.find('a').first();
-            if (!a.length) {
-                a = $("<a href=\"" + linkUrl + "\"></a>");
-                a.append(img.detach());
-                childToAppend = a;
-            }
-            if (lightBox && RichContentUtils.HasFeatherLight()) {
-                //a.attr('href', 'javascript:');
-                if (RichContentUtils.IsVideoUrl(linkUrl)) {
-                    var mimeType = RichContentUtils.GetMimeType(linkUrl);
-                    a.attr('data-featherlight', "<video class=\"video-js js-video\" preload=\"auto\" controls=\"\" autoplay=\"autoplay\"><source src=\"" + linkUrl + "\" type=\"" + mimeType + "\"></video>");
-                }
-                else {
-                    a.attr('data-featherlight', linkUrl);
-                }
-            }
-        }
         this.removeEditorAlignmentClasses(elem);
         elem.addClass(this.getImageAlignmentClass(alignment));
         if (childToAppend) {
@@ -1481,91 +1457,41 @@ var RichContentLinkEditor = /** @class */ (function (_super) {
             targetElement = $('.rce-grid', this.RichContentEditorInstance.GridSelector);
         }
         this._appendElement = targetElement;
-        this.showEditorDialog(null);
+        this.showSelectionDialog(null);
     };
-    RichContentLinkEditor.prototype.showEditorDialog = function (linkWrapper) {
+    RichContentLinkEditor.prototype.showSelectionDialog = function (elem) {
         var _this_1 = this;
         var _this = this;
-        var update = linkWrapper !== null;
-        var gridSelector = this.RichContentEditorInstance.GridSelector;
-        var dialog = this.getLinkEditorDialog(linkWrapper);
-        this.RichContentEditorInstance.DialogManager.ShowDialog(dialog, function (dialog) {
-            var valid = _this_1.RichContentEditorInstance.DialogManager.ValidateFields(gridSelector, $('input', dialog));
-            if (!valid)
-                return;
-            var url = $('#' + _this_1.RichContentEditorInstance.EditorId + '_LinkEditor_Url', dialog).val();
-            var lightBox = $('#' + _this_1.RichContentEditorInstance.EditorId + '_LinkEditor_LightBox', dialog).is(':checked');
-            var alignment = LinkAlignment.None;
-            if ($('#' + _this_1.RichContentEditorInstance.EditorId + '_LinkEditor_AlignLeft', dialog).is(':checked'))
-                alignment = LinkAlignment.Left;
-            else if ($('#' + _this_1.RichContentEditorInstance.EditorId + '_LinkEditor_AlignFill', dialog).is(':checked'))
-                alignment = LinkAlignment.Fill;
-            else if ($('#' + _this_1.RichContentEditorInstance.EditorId + '_LinkEditor_AlignRight', dialog).is(':checked'))
-                alignment = LinkAlignment.Right;
+        var url = null;
+        var lightBox = false;
+        var update = elem !== null;
+        if (elem) {
+            lightBox = $('a[data-featherlight]', elem).length > 0;
+            url = $('.rce-link', elem).attr(lightBox ? 'data-featherlight' : 'href');
+        }
+        this.RichContentEditorInstance.FileManager.ShowFileSelectionDialog(url, lightBox, false, function (url, lightBox) {
             _this.OnChange();
             if (update) {
-                _this_1.updateLink(linkWrapper, url, lightBox, alignment);
+                _this_1.updateLink(elem, url, lightBox);
             }
             else {
-                _this_1.InsertLink(url, lightBox, alignment, _this_1._appendElement);
+                _this_1.InsertLink(url, lightBox, LinkAlignment.None, _this_1._appendElement);
             }
             return true;
         });
-    };
-    RichContentLinkEditor.prototype.getLinkEditorDialog = function (linkWrapper) {
-        var dialog = $('#' + this.RichContentEditorInstance.EditorId + ' .link-editor-dialog');
-        if (!dialog.length) {
-            dialog = $(this.getLinkEditorDialogHtml(this.RichContentEditorInstance.EditorId));
-            if (RichContentUtils.HasFeatherLight()) {
-                $('.featherlight-input-group', dialog).removeClass('hide');
-            }
-            dialog.appendTo($('#' + this.RichContentEditorInstance.EditorId));
-        }
-        var href = '';
-        var alignment = LinkAlignment.Left;
-        var lightbox = false;
-        if (linkWrapper !== null) {
-            var link = $('a.rce-link', linkWrapper);
-            href = link.attr('href');
-            alignment = this.getImageAlignment(linkWrapper);
-            lightbox = !RichContentUtils.IsNullOrEmpty(link.attr('data-featherlight'));
-            if (lightbox) {
-                href = link.attr('data-featherlight');
-            }
-        }
-        $('#' + this.RichContentEditorInstance.EditorId + '_LinkEditor_Url', dialog).val(href);
-        switch (alignment) {
-            case LinkAlignment.None:
-                $('#' + this.RichContentEditorInstance.EditorId + '_LinkEditor_AlignNone', dialog).prop('checked', true);
-                break;
-            case LinkAlignment.Left:
-                $('#' + this.RichContentEditorInstance.EditorId + '_LinkEditor_AlignLeft', dialog).prop('checked', true);
-                break;
-            case LinkAlignment.Fill:
-                $('#' + this.RichContentEditorInstance.EditorId + '_LinkEditor_AlignFill', dialog).prop('checked', true);
-                break;
-            case LinkAlignment.Right:
-                $('#' + this.RichContentEditorInstance.EditorId + '_LinkEditor_AlignRight', dialog).prop('checked', true);
-                break;
-            default:
-        }
-        $('#' + this.RichContentEditorInstance.EditorId + '_LinkEditor_LightBox', dialog).prop('checked', lightbox);
-        return dialog;
-    };
-    RichContentLinkEditor.prototype.getLinkEditorDialogHtml = function (id) {
-        return "\n            <div class=\"rce-dialog link-editor-dialog\">\n                <div class=\"rce-dialog-content\">\n                    <div class=\"rce-dialog-title\">" + this._locale.EditorDialogTitle + "</div>\n                    <div class=\"rce-form-field rce-form-field-inline\">\n                        <label for=\"" + id + "_LinkEditor_Url\" class=\"rce-label\">" + this._locale.UrlLabel + "</label>\n                        <input id=\"" + id + "_LinkEditor_Url\" class=\"validate rce-input browser-default\" required=\"required\" />\n                        <span class=\"rce-error-text\">" + this.RichContentEditorInstance.Locale.FieldRequiredLabel + "</span>\n                    </div>\n                    <div class=\"rce-form-field rce-form-field-inline hide featherlight-input-group\">\n                        <label class=\"rce-label\">&nbsp;</label>\n                        <label class=\"rce-radio\">\n                            <input id=\"" + id + "_LinkEditor_LightBox\" class=\"lightbox-check\" type=\"checkbox\"/>\n                            <span>Featherlight</span>\n                        </label>\n                    </div>\n                    <div class=\"rce-form-field rce-form-field-inline\">\n                        <label class=\"rce-label\">" + this._locale.AlignmentLabel + "</label>\n                        <div class=\"rce-input-group\">\n                            <label class=\"rce-radio\">\n                                <input  id=\"" + id + "_LinkEditor_AlignNone\" name=\"" + id + "_Align\" type=\"radio\" required=\"required\" />\n                                <span>" + this._locale.AlignNoneLabel + "</span>\n                            </label><br/>\n                            <label class=\"rce-radio\">\n                                <input  id=\"" + id + "_LinkEditor_AlignLeft\" name=\"" + id + "_Align\" type=\"radio\" required=\"required\" />\n                                <span>" + this._locale.AlignLeftLabel + "</span>\n                            </label><br/>\n                            <label class=\"rce-radio\">\n                                <input  id=\"" + id + "_LinkEditor_AlignFill\" name=\"" + id + "_Align\" type=\"radio\" required=\"required\" />\n                                <span>" + this._locale.AlignFillLabel + "</span>\n                            </label><br/>\n                            <label class=\"rce-radio\">\n                                <input  id=\"" + id + "_LinkEditor_AlignRight\" name=\"" + id + "_Align\" type=\"radio\" required=\"required\" />\n                                <span>" + this._locale.AlignRightLabel + "</span>\n                            </label>\n                        </div>\n                        <div class=\"rce-clear\"></div>\n                        <span class=\"rce-error-text\">" + this.RichContentEditorInstance.Locale.FieldRequiredLabel + "</span>\n                    </div>\n                </div>\n                <div class=\"rce-dialog-footer\">\n                    <a href=\"javascript:\" class=\"rce-button rce-button-flat rce-close-dialog\">" + this.RichContentEditorInstance.DialogManager.Locale.DialogCancelButton + "</a>\n                    <a href=\"javascript:\" class=\"rce-button rce-submit-dialog\">" + this.RichContentEditorInstance.DialogManager.Locale.DialogSaveButton + "</a>\n                </div>\n            </div>";
     };
     RichContentLinkEditor.prototype.InsertLink = function (url, lightBox, alignment, targetElement) {
         var linkWrapper = $('<div class="rce-link-wrapper"></div>');
         var link = $('<a class="rce-link" onclick="return false;"></a>');
         linkWrapper.append(link);
-        this.updateLink(linkWrapper, url, lightBox, alignment);
+        this.updateLink(linkWrapper, url, lightBox);
+        linkWrapper.addClass(this.getAlignmentClass(alignment));
         if (!targetElement) {
             targetElement = $("#" + this.RichContentEditorInstance.EditorId + " .rce-grid");
         }
         this.Attach(linkWrapper, targetElement);
     };
-    RichContentLinkEditor.prototype.updateLink = function (elem, url, lightBox, alignment) {
+    RichContentLinkEditor.prototype.updateLink = function (elem, url, lightBox) {
         var link = elem.find('.rce-link');
         if (lightBox && RichContentUtils.HasFeatherLight()) {
             if (RichContentUtils.IsVideoUrl(url)) {
@@ -1582,9 +1508,8 @@ var RichContentLinkEditor = /** @class */ (function (_super) {
             link.removeAttr('data-featherlight');
         }
         this.removeEditorAlignmentClasses(elem);
-        elem.addClass(this.getImageAlignmentClass(alignment));
     };
-    RichContentLinkEditor.prototype.getImageAlignmentClass = function (alignment) {
+    RichContentLinkEditor.prototype.getAlignmentClass = function (alignment) {
         switch (alignment) {
             case LinkAlignment.Left: return 'rce-left';
             case LinkAlignment.Right: return 'rce-right';
@@ -1593,7 +1518,7 @@ var RichContentLinkEditor = /** @class */ (function (_super) {
             default: throw "Unexpected alignment value: " + alignment;
         }
     };
-    RichContentLinkEditor.prototype.getImageAlignment = function (elem) {
+    RichContentLinkEditor.prototype.getAlignment = function (elem) {
         if (elem.hasClass('rce-left'))
             return LinkAlignment.Left;
         if (elem.hasClass('rce-fill'))
@@ -1639,7 +1564,7 @@ var RichContentLinkEditor = /** @class */ (function (_super) {
                 link.css(this.RichContentEditorInstance.GridFramework.GetBlockAlignCss().Key, '');
             }
             if (alignment !== LinkAlignment.None) {
-                linkWrapper.addClass(this.getImageAlignmentClass(alignment));
+                linkWrapper.addClass(this.getAlignmentClass(alignment));
             }
             source.replaceWith(linkWrapper);
             this.Attach(linkWrapper, targetElement);
@@ -1696,8 +1621,6 @@ var RichContentLinkEditor = /** @class */ (function (_super) {
         var _this = this;
         var result = [];
         var editors = this.RichContentEditorInstance.RegisteredEditors;
-        var gridSelector = this.RichContentEditorInstance.GridSelector;
-        var editorId = this.RichContentEditorInstance.EditorId;
         var _loop_1 = function (key) {
             var editor = editors[key];
             if (editor.AllowInLink()) {
@@ -1720,7 +1643,7 @@ var RichContentLinkEditor = /** @class */ (function (_super) {
             _loop_1(key);
         }
         var editCommand = new ContextCommand(this._locale.EditMenuLabel, 'fas fa-cog', function (elem) {
-            _this.showEditorDialog(elem);
+            _this.showSelectionDialog(elem);
         });
         result.push(editCommand);
         return result;
@@ -2531,17 +2454,19 @@ DialogManager.RegisterLocale(DialogManagerLocale, 'EN');
 //# sourceMappingURL=DialogManagerLocaleEN.js.map  
 var FileManagerLocale = /** @class */ (function () {
     function FileManagerLocale() {
-        this.FileSelectionDialogTitle = "Insert Image";
         this.ByUrlTab = "By URL";
-        this.ByUrlMessage = "Enter the url in the Image URL field below.";
         this.ByUploadTab = "By Upload";
         this.BySelectionTab = "Select File";
-        this.UrlField = "Image URL";
-        this.LinkField = "Link URL (optional)";
+        this.EnterUrlValidation = "Enter a correct URL";
+        this.ImageByUrlMessage = "Enter the url in the Image URL field below.";
+        this.ImageSelectionDialogTitle = "Insert Image";
+        this.ImageUrlField = "Image URL";
+        this.LinkByUrlMessage = "Enter the url in the Link URL field below.";
+        this.LinkSelectionDialogTitle = "Insert Link";
+        this.LinkUrlField = "Link URL";
         this.UploadButton = "Upload";
         this.NoUploadPlaceholder = "No file uploaded...";
         this.NoSelectionPlaceholder = "No file selected...";
-        this.EnterUrlValidation = "Enter a correct file URL";
         this.UploadValidation = "Upload a file to continue";
         this.SelectValidation = "Select a file to continue";
         this.LoadingProgressMessage = "Loading...";

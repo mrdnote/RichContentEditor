@@ -47,7 +47,7 @@ declare class FileManager {
     static RegisterLocale<T extends typeof FileManagerLocale>(localeType: T, language: string): void;
     constructor(richContentEditor: RichContentEditor, language: string);
     private updateFileList;
-    ShowFileSelectionDialog(url: any, linkUrl: string, lightBox: boolean, action: (url: any, linkUrl: string, lightBox: boolean) => boolean): void;
+    ShowFileSelectionDialog(url: string, lightBox: boolean, imageMode: boolean, action: (url: string, lightBox: boolean) => boolean): void;
     private getFileSelectionDialog;
     private getFileSelectionDialogHtml;
 }

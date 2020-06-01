@@ -1,15 +1,17 @@
 declare class FileManagerLocaleNL extends FileManagerLocale {
-    FileSelectionDialogTitle: string;
     ByUrlTab: string;
-    ByUrlMessage: string;
     ByUploadTab: string;
     BySelectionTab: string;
-    UrlField: string;
-    LinkField: string;
+    EnterUrlValidation: string;
+    ImageByUrlMessage: string;
+    ImageSelectionDialogTitle: string;
+    ImageUrlField: string;
+    LinkByUrlMessage: string;
+    LinkSelectionDialogTitle: string;
+    LinkUrlField: string;
     UploadButton: string;
     NoUploadPlaceholder: string;
     NoSelectionPlaceholder: string;
-    EnterUrlValidation: string;
     UploadValidation: string;
     SelectValidation: string;
     LoadingProgressMessage: string;

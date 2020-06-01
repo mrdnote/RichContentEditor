@@ -36,7 +36,7 @@ class GridFrameworkBase
 
     public static Create(gridFramework?: string): GridFrameworkBase
     {
-        if (gridFramework === null)
+        if (RichContentUtils.IsNullOrEmpty(gridFramework))
         {
             return new GridFrameworkBase();
         }
@@ -225,11 +225,11 @@ class FileManager
         });
     }
 
-    public ShowFileSelectionDialog(url, linkUrl: string, lightBox: boolean, action: (url, linkUrl: string, lightBox: boolean) => boolean): void
+    public ShowFileSelectionDialog(url: string, lightBox: boolean, targetBlank: boolean, imageMode: boolean, action: (url: string, lightBox: boolean, targetBlank: boolean) => boolean): void
     {
         const gridSelector = this._richContentEditor.GridSelector;
 
-        var dialog = this.getFileSelectionDialog();
+        var dialog = this.getFileSelectionDialog(imageMode);
 
         if (!this._richContentEditor.Options.UploadUrl)
             dialog.find(`a[href="#${this._richContentEditor.EditorId}_ByUpload"]`).closest('li').addClass('rce-hide');
@@ -238,8 +238,8 @@ class FileManager
             dialog.find(`a[href="#${this._richContentEditor.EditorId}_BySelection"]`).closest('li').addClass('rce-hide');
 
         $('.image-url', dialog).val(url);
-        $('.link-url', dialog).val(linkUrl);
         $('.lightbox-check', dialog).prop('checked', lightBox);
+        $('.target-blank-check', dialog).prop('checked', targetBlank);
 
         this._richContentEditor.DialogManager.ShowDialog(dialog, (dialog) =>
         {
@@ -247,21 +247,20 @@ class FileManager
             if (!valid) return;
 
             const url = $('.image-url', dialog).val().toString();
-            const linkUrl = $('.link-url', dialog).val().toString();
             const lightBox = $('.lightbox-check', dialog).prop('checked');
+            const targetBlank = $('.target-blank-check', dialog).prop('checked');
 
-            const ok = action(url, linkUrl, lightBox);
+            const ok = action(url, lightBox, targetBlank);
             if (!ok)
                 return false;
 
             $('.image-url', dialog).val('');
-            $('.link-url', dialog).val('');
 
             return true;
         });
     }
 
-    private getFileSelectionDialog(): JQuery<HTMLElement>
+    private getFileSelectionDialog(imageMode: boolean): JQuery<HTMLElement>
     {
         const _this = this;
 
@@ -271,12 +270,8 @@ class FileManager
 
         if (!dialog.length)
         {
-            dialog = $(this.getFileSelectionDialogHtml(this._richContentEditor.EditorId));
+            dialog = $(this.getFileSelectionDialogHtml(this._richContentEditor.EditorId, imageMode));
             dialog.appendTo($('#' + editorId));
-            if (RichContentUtils.HasFeatherLight())
-            {
-                $('.featherlight-input-group', dialog).removeClass('hide');
-            }
 
             $('.rce-tabs .rce-tab a', dialog).click(function (e)
             {
@@ -361,24 +356,28 @@ class FileManager
             });
         }
 
+        $('.rce-dialog-title', dialog).text(imageMode ? this.Locale.ImageSelectionDialogTitle : this.Locale.LinkSelectionDialogTitle);
+        $(`#${editorId}_ByUrl`).text(imageMode ? this.Locale.ImageByUrlMessage : this.Locale.LinkByUrlMessage);
+        $('.image-url-label').text(imageMode? this.Locale.ImageUrlField : this.Locale.LinkUrlField);
+        $('.featherlight-input-group', dialog).toggleClass('rce-hide', !RichContentUtils.HasFeatherLight() || imageMode);
+        $('.target-blank-input-group', dialog).toggleClass('rce-hide', imageMode);
+
         return dialog;
     }
 
-    private getFileSelectionDialogHtml(editorId: string)
+    private getFileSelectionDialogHtml(editorId: string, imageMode: boolean)
     {
         return `
             <div class="rce-dialog file-dialog">
                 <div class="rce-dialog-content">
-                    <div class="rce-dialog-title">${this.Locale.FileSelectionDialogTitle}</div>
+                    <div class="rce-dialog-title"></div>
                     <div class="rce-tab-panel" style="padding: 0;">
                         <ul class="rce-tabs">
                             <li class="rce-tab active"><a href="#${editorId}_ByUrl">${this.Locale.ByUrlTab}</a></li>
                             <li class="rce-tab"><a href="#${editorId}_ByUpload">${this.Locale.ByUploadTab}</a></li>
                             <li class="rce-tab"><a href="#${editorId}_BySelection">${this.Locale.BySelectionTab}</a></li>
                         </ul>
-                        <div id="${editorId}_ByUrl" class="rce-tab-body active">
-                            ${this.Locale.ByUrlMessage}
-                        </div>
+                        <div id="${editorId}_ByUrl" class="rce-tab-body active"></div>
                         <div id="${editorId}_ByUpload" class="rce-tab-body">
                             <div class="file-path-wrapper-with-progress">
                                 <input type="file" class="rce-left">
@@ -396,19 +395,20 @@ class FileManager
                         </div>
                     </div>
                     <div class="rce-form-field">
-                        <label for="${editorId}_ImageUrl" class="rce-label">${this.Locale.UrlField}</label>
+                        <label for="${editorId}_ImageUrl" class="rce-label image-url-label"></label>
                         <input id="${editorId}_ImageUrl" class="image-url validate rce-input" type="url" required="required" />
                         <span class="rce-error-text">${this.Locale.EnterUrlValidation}</span>
                     </div>
-                    <div class="rce-form-field">
-                        <label for="${editorId}_LinkUrl" class="rce-label">${this.Locale.LinkField}</label>
-                        <input id="${editorId}_LinkUrl" class="link-url rce-input" type="url" />
-                        <span class="rce-error-text">${this.Locale.EnterUrlValidation}</span>
-                    </div>
-                    <div class="rce-input-group hide featherlight-input-group">
+                    <div class="rce-input-group rce-hide featherlight-input-group">
                         <label class="rce-radio">
-                            <input  id="${editorId}_LightBox" class="lightbox-check" type="checkbox"/>
+                            <input class="lightbox-check" type="checkbox"/>
                             <span>Featherlight</span>
+                        </label>
+                    </div>
+                    <div class="rce-input-group target-blank-input-group">
+                        <label class="rce-radio">
+                            <input class="target-blank-check" type="checkbox"/>
+                            <span>${this.Locale.OpenInNewTagCheckBox}</span>
                         </label>
                     </div>
                 </div>

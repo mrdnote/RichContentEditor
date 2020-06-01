@@ -22,7 +22,7 @@ declare class RichContentImageEditor extends RichContentBaseEditor {
     Init(richContentEditor: RichContentEditor): void;
     Insert(targetElement?: JQuery<HTMLElement>): void;
     private showSelectionDialog;
-    InsertImage(url: any, linkUrl: string, lightBox: boolean, alignment: ImageAlignment, targetElement?: JQuery<HTMLElement>): void;
+    InsertImage(url: string, alignment: ImageAlignment, targetElement?: JQuery<HTMLElement>): void;
     private updateImage;
     private getImageAlignmentClass;
     private getImageAlignment;
