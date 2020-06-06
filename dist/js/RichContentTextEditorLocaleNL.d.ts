@@ -4,4 +4,6 @@ declare class RichContentTextEditorLocaleNL extends RichContentTextEditorLocale 
     MenuLabel: string;
     OrderedList: string;
     UnorderedList: string;
+    Link: string;
+    NewLinkText: string;
 }

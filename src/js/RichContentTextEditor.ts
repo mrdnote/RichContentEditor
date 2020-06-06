@@ -180,6 +180,9 @@
 
     public GetContextCommands(_elem: JQuery<HTMLElement>): ContextCommand[]
     {
+        const _this = this;
+        const editor = this.RichContentEditorInstance;
+
         const boldCommand = new ContextCommand(this._locale.Bold, 'fas fa-bold', function (elem)
         {
             elem.find('.rce-textarea-editor').focus();
@@ -206,7 +209,84 @@
             document.execCommand('insertOrderedList', false, null);
         });
 
-        return [boldCommand, italicCommand, ulCommand, olCommand];
+        const linkCommand = new ContextCommand(this._locale.Link, 'fas fa-link', function (elem)
+        {
+            elem.find('.rce-textarea-editor').focus();
+            const selection = (window as any).rangy.getSelection();
+            let value = selection.toString();
+            if (RichContentUtils.IsNullOrEmpty(value))
+            {
+                value = _this._locale.NewLinkText;
+            }
+            let url;
+            let lightBox = false;
+            let targetBlank = false;
+            let a: JQuery<HTMLAnchorElement>;
+
+            if (selection.rangeCount > 0)
+            {
+                const range = selection.getRangeAt(0);
+                if (range.startContainer.nodeType === 1 && range.startContainer.tagName === 'A')
+                {
+                    a = $(range.startContainer);
+                }
+                else
+                {
+                    const parentElement = range.startContainer.parentElement;
+                    if (parentElement.tagName === 'A')
+                    {
+                        a = $(parentElement);
+                    }
+                    else
+                    {
+                        a = $(parentElement).closest(a);
+                    }
+                }
+
+                if (a.length)
+                {
+                    url = a.attr('href');
+                    value = a.text();
+                    const lightBoxAttr = a.attr('data-featherlight');
+                    lightBox = !RichContentUtils.IsNullOrEmpty(lightBoxAttr);
+                    if (lightBox)
+                    {
+                        url = lightBoxAttr;
+                    }
+                    targetBlank = a.attr('target') === '_blank';
+                }
+            }
+
+            editor.FileManager.ShowFileSelectionDialog(url, lightBox, targetBlank, false, 
+                (url, lightBox, targetBlank) =>
+                {
+                    _this.OnChange();
+                    var link = $(`<a href="${url}" onclick="return false;">${value}</a>`);
+                    if (lightBox)
+                    {
+                        link.attr('data-featherlight', url);
+                        link.attr('href', 'javascript:');
+                    }
+                    if (targetBlank)
+                    {
+                        link.attr('target', '_blank');
+                    }
+                    if (a.length)
+                    {
+                        a.replaceWith(link);
+                    }
+                    else
+                    {
+                        selection.deleteFromDocument();
+                        selection.getRangeAt(0).insertNode(link[0]);
+                    }
+                    selection.selectAllChildren(link[0]);
+                    return true;
+                }
+            );
+        });
+
+        return [boldCommand, italicCommand, ulCommand, olCommand, linkCommand];
     }
 
     public GetToolbarCommands(elem: JQuery<HTMLElement>): ContextCommand[]

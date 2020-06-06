@@ -15,4 +15,5 @@ declare class FileManagerLocaleNL extends FileManagerLocale {
     UploadValidation: string;
     SelectValidation: string;
     LoadingProgressMessage: string;
+    OpenInNewTagCheckBox: string;
 }

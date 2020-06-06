@@ -15,4 +15,5 @@ declare class FileManagerLocale {
     UploadValidation: string;
     SelectValidation: string;
     LoadingProgressMessage: string;
+    OpenInNewTagCheckBox: string;
 }

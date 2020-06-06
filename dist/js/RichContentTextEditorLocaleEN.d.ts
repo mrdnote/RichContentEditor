@@ -4,4 +4,6 @@ declare class RichContentTextEditorLocale {
     MenuLabel: string;
     OrderedList: string;
     UnorderedList: string;
+    Link: string;
+    NewLinkText: string;
 }

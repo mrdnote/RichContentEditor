@@ -13,7 +13,7 @@ declare class RichContentLinkEditor extends RichContentBaseEditor {
     Init(richContentEditor: RichContentEditor): void;
     Insert(targetElement?: JQuery<HTMLElement>): void;
     private showSelectionDialog;
-    InsertLink(url: string, lightBox: boolean, alignment: LinkAlignment, targetElement?: JQuery<HTMLElement>): void;
+    InsertLink(url: string, lightBox: boolean, targetBlank: boolean, alignment: LinkAlignment, targetElement?: JQuery<HTMLElement>): void;
     private updateLink;
     private getAlignmentClass;
     private getAlignment;
