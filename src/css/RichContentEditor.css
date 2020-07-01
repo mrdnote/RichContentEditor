@@ -83,7 +83,7 @@
     position: relative;
 }
 
-.rce-link-wrapper .rce-link {
+.rce-link-wrapper * {
     display: inline-block;
 }
 
