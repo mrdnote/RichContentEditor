@@ -84,7 +84,7 @@ class Editor
 
     private getEditors(): string[]
     {
-        const editors: string[] = ['RichContentTextEditor', 'RichContentHeadingEditor', 'RichContentFontAwesomeIconEditor', 'RichContentLinkEditor'];
+        const editors: string[] = ['RichContentTextEditor', 'RichContentHeadingEditor', 'RichContentFontAwesomeIconEditor', 'RichContentLinkEditor', 'RichContentVideoEditor'];
 
         if ($('#ImageCheckBox').prop('checked'))
         {

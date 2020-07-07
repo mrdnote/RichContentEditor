@@ -40,6 +40,10 @@ declare class GridFrameworkBase {
     GetColumnCenterAlignClass(): string;
     GetColumnRightAlignClass(): string;
 }
+interface FileListItem {
+    name: string;
+    uri: string;
+}
 declare class FileManager {
     private _richContentEditor;
     private static _localeRegistrations;

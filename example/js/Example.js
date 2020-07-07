@@ -58,7 +58,7 @@ var Editor = /** @class */ (function () {
         $('#ContentEditButton').removeClass('rce-hide');
     };
     Editor.prototype.getEditors = function () {
-        var editors = ['RichContentTextEditor', 'RichContentHeadingEditor', 'RichContentFontAwesomeIconEditor', 'RichContentLinkEditor'];
+        var editors = ['RichContentTextEditor', 'RichContentHeadingEditor', 'RichContentFontAwesomeIconEditor', 'RichContentLinkEditor', 'RichContentVideoEditor'];
         if ($('#ImageCheckBox').prop('checked')) {
             editors.push('RichContentImageEditor');
         }

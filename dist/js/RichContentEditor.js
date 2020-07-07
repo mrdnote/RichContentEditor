@@ -1494,6 +1494,143 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var RichContentVideoEditor = /** @class */ (function (_super) {
+    __extends(RichContentVideoEditor, _super);
+    function RichContentVideoEditor() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    RichContentVideoEditor.RegisterLocale = function (localeType, language) {
+        RichContentVideoEditor._localeRegistrations[language] = localeType;
+    };
+    RichContentVideoEditor.prototype.Init = function (richContentEditor) {
+        _super.prototype.Init.call(this, richContentEditor);
+        this._locale = new RichContentVideoEditor._localeRegistrations[richContentEditor.Options.Language]();
+    };
+    RichContentVideoEditor.prototype.Insert = function (targetElement) {
+        _super.prototype.Insert.call(this, targetElement);
+        if (!targetElement) {
+            targetElement = $('.rce-grid', this.RichContentEditorInstance.GridSelector);
+        }
+        this._appendElement = targetElement;
+        this.showSelectionDialog(null);
+    };
+    RichContentVideoEditor.prototype.showSelectionDialog = function (elem) {
+        var _this_1 = this;
+        var _this = this;
+        var url = null;
+        var update = elem !== null;
+        if (elem) {
+            var coreElement = elem.find('.video');
+            url = this.getUrl(coreElement);
+        }
+        this.RichContentEditorInstance.FileManager.ShowFileSelectionDialog(url, false, false, false, function (url, _lightBox, _targetBlank) {
+            _this.OnChange();
+            if (update) {
+                _this_1.updateElement(elem, url);
+            }
+            else {
+                _this_1.InsertElement(url, _this_1._appendElement);
+            }
+            return true;
+        });
+    };
+    RichContentVideoEditor.prototype.getUrl = function (coreElement) {
+        if ($('iframe', coreElement).length) {
+            return $('iframe', coreElement).attr('src');
+        }
+        return $('video source', coreElement).attr('src');
+    };
+    RichContentVideoEditor.prototype.InsertElement = function (url, targetElement) {
+        var wrapper = $('<div class="rce-video-wrapper"></div>');
+        this.updateElement(wrapper, url);
+        if (!targetElement) {
+            targetElement = $("#" + this.RichContentEditorInstance.EditorId + " .rce-grid");
+        }
+        this.Attach(wrapper, targetElement);
+    };
+    RichContentVideoEditor.prototype.isYouTube = function (url) {
+        return url.indexOf('youtube.com/embed/') > -1;
+    };
+    RichContentVideoEditor.prototype.getCoreElement = function (youtube) {
+        if (youtube) {
+            return $('<div class="rce-video video"><iframe allowfullscreen="allowfullscreen" frameborder="0"></iframe></div>');
+        }
+        return $('<div class="rce-video video videojs"><video class="video-js vjs-default-skin vjs-16-9" preload="auto" controls><source /></video></div>');
+    };
+    RichContentVideoEditor.prototype.updateElement = function (elem, url) {
+        var youtube = this.isYouTube(url);
+        var coreElement = this.getCoreElement(youtube);
+        elem.empty();
+        elem.append(coreElement);
+        if (youtube) {
+            var iframe = coreElement.find('iframe');
+            iframe.attr('src', url);
+        }
+        else {
+            var source = coreElement.find('video source');
+            source.attr('src', url);
+        }
+    };
+    RichContentVideoEditor.prototype.GetDetectionSelectors = function () {
+        return 'div.video';
+    };
+    RichContentVideoEditor.prototype.Import = function (targetElement, source) {
+        if (source.is('div.video')) {
+            var clone = source.clone();
+            clone.addClass('rce-video');
+            var wrapper = $('<div class="rce-video-wrapper"></div>');
+            wrapper.append(clone);
+            source.replaceWith(wrapper);
+            this.Attach(wrapper, targetElement);
+        }
+    };
+    RichContentVideoEditor.prototype.GetMenuLabel = function () {
+        return this._locale.MenuLabel;
+    };
+    RichContentVideoEditor.prototype.GetMenuIconClasses = function () {
+        return 'fas fa-video';
+    };
+    RichContentVideoEditor.prototype.AllowInTableCell = function () {
+        return true;
+    };
+    RichContentVideoEditor.prototype.AllowInLink = function () {
+        return true;
+    };
+    RichContentVideoEditor.prototype.Clean = function (elem) {
+        var wrapper = elem.closest('.rce-video-wrapper');
+        var coreElement = wrapper.find('.rce-video');
+        coreElement.removeClass('rce-video');
+        elem.removeAttr('draggable');
+        _super.prototype.Clean.call(this, elem);
+    };
+    RichContentVideoEditor.prototype.GetContextButtonText = function (_elem) {
+        return 'vid';
+    };
+    RichContentVideoEditor.prototype.GetContextCommands = function (_elem) {
+        var _this = this;
+        var editCommand = new ContextCommand(this._locale.EditMenuLabel, 'fas fa-cog', function (elem) {
+            _this.showSelectionDialog(elem);
+        });
+        return [editCommand];
+    };
+    RichContentVideoEditor._localeRegistrations = {};
+    return RichContentVideoEditor;
+}(RichContentBaseEditor));
+RichContentBaseEditor.RegisterEditor('RichContentVideoEditor', RichContentVideoEditor);
+//# sourceMappingURL=RichContentVideoEditor.js.map  
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var LinkAlignment;
 (function (LinkAlignment) {
     LinkAlignment[LinkAlignment["None"] = 0] = "None";
@@ -2595,6 +2732,15 @@ var RichContentImageEditorLocale = /** @class */ (function () {
 }());
 RichContentImageEditor.RegisterLocale(RichContentImageEditorLocale, 'EN');
 //# sourceMappingURL=RichContentImageEditorLocaleEN.js.map  
+var RichContentVideoEditorLocale = /** @class */ (function () {
+    function RichContentVideoEditorLocale() {
+        this.MenuLabel = "Video";
+        this.EditMenuLabel = "Edit Settings";
+    }
+    return RichContentVideoEditorLocale;
+}());
+RichContentVideoEditor.RegisterLocale(RichContentVideoEditorLocale, 'EN');
+//# sourceMappingURL=RichContentVideoEditorLocaleEN.js.map  
 var RichContentLinkEditorLocale = /** @class */ (function () {
     function RichContentLinkEditorLocale() {
         this.MenuLabel = "Link";

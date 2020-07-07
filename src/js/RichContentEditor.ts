@@ -169,6 +169,12 @@ class GridFrameworkBase
     }
 }
 
+interface FileListItem
+{
+    name: string;
+    uri: string;
+}
+
 class FileManager
 {
     //private _options: RichContentEditorOptions;

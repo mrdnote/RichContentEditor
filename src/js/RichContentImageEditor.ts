@@ -1,10 +1,4 @@
-﻿interface FileListItem
-{
-    name: string;
-    uri: string;
-}
-
-enum ImageAlignment
+﻿enum ImageAlignment
 {
     None, Fill, Left, Right
 }

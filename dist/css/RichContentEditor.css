@@ -78,6 +78,10 @@
     margin-left: 5px;
 }
 
+.rce-video-wrapper {
+    position: relative;
+}
+
 .rce-link-wrapper {
     display: inline-block;
     position: relative;
@@ -567,3 +571,35 @@ label.rce-checkbox input {
 .col.rce-order-xl3 {
     order: 3;
 }
+
+/* Embedded video */
+
+.video {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 */
+    padding-top: 25px;
+    height: 0;
+}
+
+.video iframe, .video span {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.video.videojs {
+    position: relative;
+    width: 100%;
+}
+
+.video.videojs video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* End Embedded video */
