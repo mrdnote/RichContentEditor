@@ -23,7 +23,12 @@ class Editor
         };
 
         let rce = this.instantiateMainEditor(options);
-        rce.GetEditor("RichContentTableEditor").RegisterCssClasses(['red', 'green', 'yellow']);
+        let tableCssClasses = ['red', 'green', 'yellow'];
+        if (framework === "GridFrameworkMaterialize")
+        {
+            tableCssClasses.push('card-panel');
+        }
+        rce.GetEditor("RichContentTableEditor").RegisterCssClasses(tableCssClasses);
 
         const options2: RichContentEditorOptions =
         {
@@ -84,7 +89,7 @@ class Editor
 
     private getEditors(): string[]
     {
-        const editors: string[] = ['RichContentTextEditor', 'RichContentHeadingEditor', 'RichContentFontAwesomeIconEditor', 'RichContentLinkEditor', 'RichContentVideoEditor'];
+        const editors: string[] = ['RichContentTextEditor', 'RichContentHeadingEditor', 'RichContentFontAwesomeIconEditor', 'RichContentLinkEditor', 'RichContentVideoEditor', 'RichContentIFrameEditor'];
 
         if ($('#ImageCheckBox').prop('checked'))
         {

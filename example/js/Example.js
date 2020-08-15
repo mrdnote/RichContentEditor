@@ -17,7 +17,11 @@ var Editor = /** @class */ (function () {
             OnSave: this.handleSave
         };
         var rce = this.instantiateMainEditor(options);
-        rce.GetEditor("RichContentTableEditor").RegisterCssClasses(['red', 'green', 'yellow']);
+        var tableCssClasses = ['red', 'green', 'yellow'];
+        if (framework === "GridFrameworkMaterialize") {
+            tableCssClasses.push('card-panel');
+        }
+        rce.GetEditor("RichContentTableEditor").RegisterCssClasses(tableCssClasses);
         var options2 = {
             Language: 'EN',
             GridFramework: framework
@@ -58,7 +62,7 @@ var Editor = /** @class */ (function () {
         $('#ContentEditButton').removeClass('rce-hide');
     };
     Editor.prototype.getEditors = function () {
-        var editors = ['RichContentTextEditor', 'RichContentHeadingEditor', 'RichContentFontAwesomeIconEditor', 'RichContentLinkEditor', 'RichContentVideoEditor'];
+        var editors = ['RichContentTextEditor', 'RichContentHeadingEditor', 'RichContentFontAwesomeIconEditor', 'RichContentLinkEditor', 'RichContentVideoEditor', 'RichContentIFrameEditor'];
         if ($('#ImageCheckBox').prop('checked')) {
             editors.push('RichContentImageEditor');
         }

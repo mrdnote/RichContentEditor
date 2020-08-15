@@ -50,7 +50,7 @@ var RichContentUtils = /** @class */ (function () {
     };
     return RichContentUtils;
 }());
-//# sourceMappingURL=RichContentUtils.js.map  
+//# sourceMappingURL=RichContentUtils.js.map 
 var KeyValue = /** @class */ (function () {
     function KeyValue() {
     }
@@ -261,7 +261,7 @@ var RichContentBaseEditor = /** @class */ (function () {
     RichContentBaseEditor._registrations = {};
     return RichContentBaseEditor;
 }());
-//# sourceMappingURL=RichContentBaseEditor.js.map  
+//# sourceMappingURL=RichContentBaseEditor.js.map 
 var RichContentEditorOptions = /** @class */ (function () {
     function RichContentEditorOptions() {
         /**
@@ -511,7 +511,7 @@ var FileManager = /** @class */ (function () {
         return dialog;
     };
     FileManager.prototype.getFileSelectionDialogHtml = function (editorId, imageMode) {
-        return "\n            <div class=\"rce-dialog file-dialog\">\n                <div class=\"rce-dialog-content\">\n                    <div class=\"rce-dialog-title\"></div>\n                    <div class=\"rce-tab-panel\" style=\"padding: 0;\">\n                        <ul class=\"rce-tabs\">\n                            <li class=\"rce-tab active\"><a href=\"#" + editorId + "_ByUrl\">" + this.Locale.ByUrlTab + "</a></li>\n                            <li class=\"rce-tab\"><a href=\"#" + editorId + "_ByUpload\">" + this.Locale.ByUploadTab + "</a></li>\n                            <li class=\"rce-tab\"><a href=\"#" + editorId + "_BySelection\">" + this.Locale.BySelectionTab + "</a></li>\n                        </ul>\n                        <div id=\"" + editorId + "_ByUrl\" class=\"rce-tab-body active\"></div>\n                        <div id=\"" + editorId + "_ByUpload\" class=\"rce-tab-body\">\n                            <div class=\"file-path-wrapper-with-progress\">\n                                <input type=\"file\" class=\"rce-left\">\n                                <div class=\"rce-right\">\n                                    <button type=\"button\" class=\"rce-button upload-button\" style=\"width: 100%;\" disabled=\"disabled\">" + this.Locale.UploadButton + "</button>\n                                </div>\n                                <div class=\"file-path-wrapper-progress\"></div>\n                                <div class=\"rce-clear\"></div>\n                            </div>\n                        </div>\n                        <div id=\"" + editorId + "_BySelection\" class=\"rce-tab-body\">\n                            <div class=\"file-table\">\n                                " + this.Locale.LoadingProgressMessage + "\n                            </div>\n                        </div>\n                    </div>\n                    <div class=\"rce-form-field\">\n                        <label for=\"" + editorId + "_ImageUrl\" class=\"rce-label image-url-label\"></label>\n                        <input id=\"" + editorId + "_ImageUrl\" class=\"image-url validate rce-input\" type=\"text\" required=\"required\" pattern=\"^([\\/].*|[#].+|\\w*:\\/\\/.+)\" />\n                        <span class=\"rce-error-text\">" + this.Locale.EnterUrlValidation + "</span>\n                    </div>\n                    <div class=\"rce-input-group rce-hide featherlight-input-group\">\n                        <label class=\"rce-radio\">\n                            <input class=\"lightbox-check\" type=\"checkbox\"/>\n                            <span>Featherlight</span>\n                        </label>\n                    </div>\n                    <div class=\"rce-input-group target-blank-input-group\">\n                        <label class=\"rce-radio\">\n                            <input class=\"target-blank-check\" type=\"checkbox\"/>\n                            <span>" + this.Locale.OpenInNewTagCheckBox + "</span>\n                        </label>\n                    </div>\n                </div>\n                <div class=\"rce-dialog-footer\">\n                    <a href=\"javascript:\" class=\"rce-button rce-button-flat rce-close-dialog\">" + this._richContentEditor.DialogManager.Locale.DialogCancelButton + "</a>\n                    <a href=\"javascript:\" class=\"rce-button rce-submit-dialog\">" + this._richContentEditor.DialogManager.Locale.DialogSaveButton + "</a>\n                </div>\n            </div>";
+        return "\n            <div class=\"rce-dialog file-dialog\">\n                <div class=\"rce-dialog-content\">\n                    <div class=\"rce-dialog-title\"></div>\n                    <div class=\"rce-tab-panel\" style=\"padding: 0;\">\n                        <ul class=\"rce-tabs\">\n                            <li class=\"rce-tab active\"><a href=\"#" + editorId + "_ByUrl\">" + this.Locale.ByUrlTab + "</a></li>\n                            <li class=\"rce-tab\"><a href=\"#" + editorId + "_ByUpload\">" + this.Locale.ByUploadTab + "</a></li>\n                            <li class=\"rce-tab\"><a href=\"#" + editorId + "_BySelection\">" + this.Locale.BySelectionTab + "</a></li>\n                        </ul>\n                        <div id=\"" + editorId + "_ByUrl\" class=\"rce-tab-body active\"></div>\n                        <div id=\"" + editorId + "_ByUpload\" class=\"rce-tab-body\">\n                            <div class=\"file-path-wrapper-with-progress\">\n                                <input type=\"file\" class=\"rce-left\">\n                                <div class=\"rce-right\">\n                                    <button type=\"button\" class=\"rce-button upload-button\" style=\"width: 100%;\" disabled=\"disabled\">" + this.Locale.UploadButton + "</button>\n                                </div>\n                                <div class=\"file-path-wrapper-progress\"></div>\n                                <div class=\"rce-clear\"></div>\n                            </div>\n                        </div>\n                        <div id=\"" + editorId + "_BySelection\" class=\"rce-tab-body\">\n                            <div class=\"file-table\">\n                                " + this.Locale.LoadingProgressMessage + "\n                            </div>\n                        </div>\n                    </div>\n                    <div class=\"rce-form-field\">\n                        <label for=\"" + editorId + "_ImageUrl\" class=\"rce-label image-url-label\"></label>\n                        <input id=\"" + editorId + "_ImageUrl\" class=\"image-url validate rce-input\" type=\"text\" required=\"required\" />\n                        <span class=\"rce-error-text\">" + this.Locale.EnterUrlValidation + "</span>\n                    </div>\n                    <div class=\"rce-input-group rce-hide featherlight-input-group\">\n                        <label class=\"rce-radio\">\n                            <input class=\"lightbox-check\" type=\"checkbox\"/>\n                            <span>Featherlight</span>\n                        </label>\n                    </div>\n                    <div class=\"rce-input-group target-blank-input-group\">\n                        <label class=\"rce-radio\">\n                            <input class=\"target-blank-check\" type=\"checkbox\"/>\n                            <span>" + this.Locale.OpenInNewTagCheckBox + "</span>\n                        </label>\n                    </div>\n                </div>\n                <div class=\"rce-dialog-footer\">\n                    <a href=\"javascript:\" class=\"rce-button rce-button-flat rce-close-dialog\">" + this._richContentEditor.DialogManager.Locale.DialogCancelButton + "</a>\n                    <a href=\"javascript:\" class=\"rce-button rce-submit-dialog\">" + this._richContentEditor.DialogManager.Locale.DialogSaveButton + "</a>\n                </div>\n            </div>";
     };
     FileManager._localeRegistrations = {};
     return FileManager;
@@ -885,7 +885,7 @@ var HtmlTemplates = /** @class */ (function () {
     };
     return HtmlTemplates;
 }());
-//# sourceMappingURL=RichContentEditor.js.map  
+//# sourceMappingURL=RichContentEditor.js.map 
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -1108,7 +1108,7 @@ var RichContentTextEditor = /** @class */ (function (_super) {
     return RichContentTextEditor;
 }(RichContentBaseEditor));
 RichContentBaseEditor.RegisterEditor('RichContentTextEditor', RichContentTextEditor);
-//# sourceMappingURL=RichContentTextEditor.js.map  
+//# sourceMappingURL=RichContentTextEditor.js.map 
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -1258,7 +1258,7 @@ var RichContentHeadingEditor = /** @class */ (function (_super) {
     return RichContentHeadingEditor;
 }(RichContentBaseEditor));
 RichContentBaseEditor.RegisterEditor('RichContentHeadingEditor', RichContentHeadingEditor);
-//# sourceMappingURL=RichContentHeadingEditor.js.map  
+//# sourceMappingURL=RichContentHeadingEditor.js.map 
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -1480,7 +1480,7 @@ var RichContentImageEditor = /** @class */ (function (_super) {
     return RichContentImageEditor;
 }(RichContentBaseEditor));
 RichContentBaseEditor.RegisterEditor('RichContentImageEditor', RichContentImageEditor);
-//# sourceMappingURL=RichContentImageEditor.js.map  
+//# sourceMappingURL=RichContentImageEditor.js.map 
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -1617,7 +1617,148 @@ var RichContentVideoEditor = /** @class */ (function (_super) {
     return RichContentVideoEditor;
 }(RichContentBaseEditor));
 RichContentBaseEditor.RegisterEditor('RichContentVideoEditor', RichContentVideoEditor);
-//# sourceMappingURL=RichContentVideoEditor.js.map  
+//# sourceMappingURL=RichContentVideoEditor.js.map 
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+var RichContentIFrameEditor = /** @class */ (function (_super) {
+    __extends(RichContentIFrameEditor, _super);
+    function RichContentIFrameEditor() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    RichContentIFrameEditor.RegisterLocale = function (localeType, language) {
+        RichContentIFrameEditor._localeRegistrations[language] = localeType;
+    };
+    RichContentIFrameEditor.prototype.Init = function (richContentEditor) {
+        _super.prototype.Init.call(this, richContentEditor);
+        this._locale = new RichContentIFrameEditor._localeRegistrations[richContentEditor.Options.Language]();
+    };
+    RichContentIFrameEditor.prototype.Insert = function (targetElement) {
+        _super.prototype.Insert.call(this, targetElement);
+        if (!targetElement) {
+            targetElement = $('.rce-grid', this.RichContentEditorInstance.GridSelector);
+        }
+        this._appendElement = targetElement;
+        this.showSelectionDialog(null);
+    };
+    RichContentIFrameEditor.prototype.showSelectionDialog = function (elem) {
+        var _this_1 = this;
+        var _this = this;
+        var url = null;
+        var height = null;
+        var update = elem !== null;
+        if (elem) {
+            var coreElement = elem.find('.rce-iframe');
+            url = this.getUrl(coreElement);
+            var heightString = coreElement.css('height').replace('px', '');
+            if (heightString) {
+                height = parseInt(heightString);
+            }
+        }
+        var dialog = _this.getEditDialog();
+        $('.iframe-url', dialog).val(url);
+        $('.iframe-height', dialog).val(height);
+        this.RichContentEditorInstance.DialogManager.ShowDialog(dialog, function (dialog) {
+            var gridSelector = _this.RichContentEditorInstance.GridSelector;
+            var valid = _this.RichContentEditorInstance.DialogManager.ValidateFields(gridSelector, $('input', dialog));
+            if (!valid)
+                return false;
+            var url = $('.rce-dialog-content .iframe-url', dialog).val();
+            var height = parseInt($('.rce-dialog-content .iframe-height', dialog).val());
+            _this.OnChange();
+            if (update) {
+                _this_1.updateElement(elem, url, height);
+            }
+            else {
+                _this_1.InsertElement(url, height, _this_1._appendElement);
+            }
+            return true;
+        });
+    };
+    RichContentIFrameEditor.prototype.getEditDialog = function () {
+        var dialog = $('#' + this.RichContentEditorInstance.EditorId + ' .fa-iframe-edit-dialog');
+        if (!dialog.length) {
+            dialog = $(this.getEditDialogHtml(this.RichContentEditorInstance.EditorId));
+            dialog.appendTo($('#' + this.RichContentEditorInstance.EditorId));
+        }
+        return dialog;
+    };
+    RichContentIFrameEditor.prototype.getEditDialogHtml = function (id) {
+        return "\n            <div class=\"rce-dialog fa-iframe-edit-dialog\">\n                <div class=\"rce-dialog-content\">\n                    <div class=\"rce-dialog-title\">" + this._locale.EditMenuLabel + "</div>\n                    <div class=\"rce-form-field\">\n                        <label for=\"" + id + "_Height\" class=\"rce-label\">" + this._locale.HeightLabel + "</label>\n                        <input id=\"" + id + "_Height\" class=\"validate rce-input iframe-height browser-default\" type=\"number\" required=\"required\" max=\"1000\" />\n                        <span class=\"rce-error-text\">" + this._locale.HeightValidation + "</span>\n                    </div>\n                    <div class=\"rce-form-field\">\n                        <label for=\"" + id + "_IFrameUrl\" class=\"rce-label\">" + this._locale.UrlLabel + "</label>\n                        <input id=\"" + id + "_IFrameUrl\" class=\"iframe-url validate rce-input\" type=\"text\" required=\"required\" />\n                        <span class=\"rce-error-text\">" + this._locale.EnterUrlValidation + "</span>\n                    </div>\n                    <div class=\"rce-clear\"></div>\n                </div>\n                <div class=\"rce-dialog-footer\">\n                    <a href=\"javascript:\" class=\"rce-button rce-button-flat rce-close-dialog\">" + this.RichContentEditorInstance.DialogManager.Locale.DialogCancelButton + "</a>\n                    <a href=\"javascript:\" class=\"rce-button rce-submit-dialog\">" + this.RichContentEditorInstance.DialogManager.Locale.DialogSaveButton + "</a>\n                </div>\n            </div>";
+    };
+    RichContentIFrameEditor.prototype.getUrl = function (coreElement) {
+        return $(coreElement).attr('src');
+    };
+    RichContentIFrameEditor.prototype.InsertElement = function (url, height, targetElement) {
+        var wrapper = $('<div class="rce-iframe-wrapper"><iframe class="rce-iframe"></iframe></div>');
+        this.updateElement(wrapper, url, height);
+        if (!targetElement) {
+            targetElement = $("#" + this.RichContentEditorInstance.EditorId + " .rce-grid");
+        }
+        this.Attach(wrapper, targetElement);
+    };
+    RichContentIFrameEditor.prototype.updateElement = function (elem, url, height) {
+        var coreElement = elem.find('.rce-iframe');
+        coreElement.attr('src', url);
+        coreElement.css('height', height + 'px');
+    };
+    RichContentIFrameEditor.prototype.GetDetectionSelectors = function () {
+        return 'iframe';
+    };
+    RichContentIFrameEditor.prototype.Import = function (targetElement, source) {
+        if (source.is('iframe')) {
+            var clone = source.clone();
+            clone.addClass('rce-iframe');
+            var wrapper = $('<div class="rce-iframe-wrapper"></div>');
+            wrapper.append(clone);
+            source.replaceWith(wrapper);
+            this.Attach(wrapper, targetElement);
+        }
+    };
+    RichContentIFrameEditor.prototype.GetMenuLabel = function () {
+        return this._locale.MenuLabel;
+    };
+    RichContentIFrameEditor.prototype.GetMenuIconClasses = function () {
+        return 'far fa-square';
+    };
+    RichContentIFrameEditor.prototype.AllowInTableCell = function () {
+        return false;
+    };
+    RichContentIFrameEditor.prototype.AllowInLink = function () {
+        return false;
+    };
+    RichContentIFrameEditor.prototype.Clean = function (elem) {
+        var wrapper = elem.closest('.rce-iframe-wrapper');
+        var coreElement = wrapper.find('.rce-iframe');
+        coreElement.removeClass('rce-iframe');
+        elem.removeAttr('draggable');
+        _super.prototype.Clean.call(this, elem);
+    };
+    RichContentIFrameEditor.prototype.GetContextButtonText = function (_elem) {
+        return 'ifr';
+    };
+    RichContentIFrameEditor.prototype.GetContextCommands = function (_elem) {
+        var _this = this;
+        var editCommand = new ContextCommand(this._locale.EditMenuLabel, 'fas fa-cog', function (elem) {
+            _this.showSelectionDialog(elem);
+        });
+        return [editCommand];
+    };
+    RichContentIFrameEditor._localeRegistrations = {};
+    return RichContentIFrameEditor;
+}(RichContentBaseEditor));
+RichContentBaseEditor.RegisterEditor('RichContentIFrameEditor', RichContentIFrameEditor);
+//# sourceMappingURL=RichContentIFrameEditor.js.map 
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -1862,7 +2003,7 @@ var RichContentLinkEditor = /** @class */ (function (_super) {
     return RichContentLinkEditor;
 }(RichContentBaseEditor));
 RichContentBaseEditor.RegisterEditor('RichContentLinkEditor', RichContentLinkEditor);
-//# sourceMappingURL=RichContentLinkEditor.js.map  
+//# sourceMappingURL=RichContentLinkEditor.js.map 
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -2089,7 +2230,7 @@ var RichContentFontAwesomeIconEditor = /** @class */ (function (_super) {
     return RichContentFontAwesomeIconEditor;
 }(RichContentBaseEditor));
 RichContentBaseEditor.RegisterEditor('RichContentFontAwesomeIconEditor', RichContentFontAwesomeIconEditor);
-//# sourceMappingURL=RichContentFontAwesomeIconEditor.js.map  
+//# sourceMappingURL=RichContentFontAwesomeIconEditor.js.map 
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -2449,7 +2590,7 @@ var RichContentTableEditor = /** @class */ (function (_super) {
     return RichContentTableEditor;
 }(RichContentBaseEditor));
 RichContentBaseEditor.RegisterEditor('RichContentTableEditor', RichContentTableEditor);
-//# sourceMappingURL=RichContentTableEditor.js.map  
+//# sourceMappingURL=RichContentTableEditor.js.map 
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -2513,7 +2654,7 @@ var GridFrameworkBootstrap = /** @class */ (function (_super) {
     return GridFrameworkBootstrap;
 }(GridFrameworkBase));
 GridFrameworkBase.Register('GridFrameworkBootstrap', GridFrameworkBootstrap);
-//# sourceMappingURL=GridFrameworkBootstrap.js.map  
+//# sourceMappingURL=GridFrameworkBootstrap.js.map 
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -2594,7 +2735,7 @@ var GridFrameworkMaterialize = /** @class */ (function (_super) {
     return GridFrameworkMaterialize;
 }(GridFrameworkBase));
 GridFrameworkBase.Register('GridFrameworkMaterialize', GridFrameworkMaterialize);
-//# sourceMappingURL=GridFrameworkMaterialize.js.map  
+//# sourceMappingURL=GridFrameworkMaterialize.js.map 
 var XYPosition = /** @class */ (function () {
     function XYPosition(x, y) {
         this.X = x;
@@ -2647,7 +2788,7 @@ var RichContentUtils = /** @class */ (function () {
     };
     return RichContentUtils;
 }());
-//# sourceMappingURL=RichContentUtils.js.map  
+//# sourceMappingURL=RichContentUtils.js.map 
 var DialogManagerLocale = /** @class */ (function () {
     function DialogManagerLocale() {
         this.DialogSaveButton = "Save";
@@ -2658,7 +2799,7 @@ var DialogManagerLocale = /** @class */ (function () {
     return DialogManagerLocale;
 }());
 DialogManager.RegisterLocale(DialogManagerLocale, 'EN');
-//# sourceMappingURL=DialogManagerLocaleEN.js.map  
+//# sourceMappingURL=DialogManagerLocaleEN.js.map 
 var FileManagerLocale = /** @class */ (function () {
     function FileManagerLocale() {
         this.ByUrlTab = "By URL";
@@ -2682,7 +2823,7 @@ var FileManagerLocale = /** @class */ (function () {
     return FileManagerLocale;
 }());
 FileManager.RegisterLocale(FileManagerLocale, 'EN');
-//# sourceMappingURL=FileManagerLocaleEN.js.map  
+//# sourceMappingURL=FileManagerLocaleEN.js.map 
 var RichContentEditorLocale = /** @class */ (function () {
     function RichContentEditorLocale() {
         this.Delete = "Delete";
@@ -2692,7 +2833,7 @@ var RichContentEditorLocale = /** @class */ (function () {
     return RichContentEditorLocale;
 }());
 RichContentEditor.RegisterLocale(RichContentEditorLocale, 'EN');
-//# sourceMappingURL=RichContentEditorLocaleEN.js.map  
+//# sourceMappingURL=RichContentEditorLocaleEN.js.map 
 var RichContentFontAwesomeIconEditorLocale = /** @class */ (function () {
     function RichContentFontAwesomeIconEditorLocale() {
         this.MenuLabel = "Fontawesome Icon";
@@ -2706,7 +2847,7 @@ var RichContentFontAwesomeIconEditorLocale = /** @class */ (function () {
     return RichContentFontAwesomeIconEditorLocale;
 }());
 RichContentFontAwesomeIconEditor.RegisterLocale(RichContentFontAwesomeIconEditorLocale, 'EN');
-//# sourceMappingURL=RichContentFontAwesomeIconEditorLocaleEN.js.map  
+//# sourceMappingURL=RichContentFontAwesomeIconEditorLocaleEN.js.map 
 var RichContentHeadingEditorLocale = /** @class */ (function () {
     function RichContentHeadingEditorLocale() {
         this.MenuLabel = "Heading";
@@ -2718,7 +2859,7 @@ var RichContentHeadingEditorLocale = /** @class */ (function () {
     return RichContentHeadingEditorLocale;
 }());
 RichContentHeadingEditor.RegisterLocale(RichContentHeadingEditorLocale, 'EN');
-//# sourceMappingURL=RichContentHeadingEditorLocaleEN.js.map  
+//# sourceMappingURL=RichContentHeadingEditorLocaleEN.js.map 
 var RichContentImageEditorLocale = /** @class */ (function () {
     function RichContentImageEditorLocale() {
         this.MenuLabel = "Image";
@@ -2731,7 +2872,21 @@ var RichContentImageEditorLocale = /** @class */ (function () {
     return RichContentImageEditorLocale;
 }());
 RichContentImageEditor.RegisterLocale(RichContentImageEditorLocale, 'EN');
-//# sourceMappingURL=RichContentImageEditorLocaleEN.js.map  
+//# sourceMappingURL=RichContentImageEditorLocaleEN.js.map 
+var RichContentIFrameEditorLocale = /** @class */ (function () {
+    function RichContentIFrameEditorLocale() {
+        this.MenuLabel = "IFrame";
+        this.EditMenuLabel = "Edit Settings";
+        this.UrlLabel = "URL";
+        this.EnterUrlValidation = "Enter a valid URL";
+        this.HeightLabel = "Height";
+        this.HeightPostFixLabel = "px";
+        this.HeightValidation = "Enter a valid number";
+    }
+    return RichContentIFrameEditorLocale;
+}());
+RichContentIFrameEditor.RegisterLocale(RichContentIFrameEditorLocale, 'EN');
+//# sourceMappingURL=RichContentIFrameEditorLocaleEN.js.map 
 var RichContentVideoEditorLocale = /** @class */ (function () {
     function RichContentVideoEditorLocale() {
         this.MenuLabel = "Video";
@@ -2740,7 +2895,7 @@ var RichContentVideoEditorLocale = /** @class */ (function () {
     return RichContentVideoEditorLocale;
 }());
 RichContentVideoEditor.RegisterLocale(RichContentVideoEditorLocale, 'EN');
-//# sourceMappingURL=RichContentVideoEditorLocaleEN.js.map  
+//# sourceMappingURL=RichContentVideoEditorLocaleEN.js.map 
 var RichContentLinkEditorLocale = /** @class */ (function () {
     function RichContentLinkEditorLocale() {
         this.MenuLabel = "Link";
@@ -2760,7 +2915,7 @@ var RichContentLinkEditorLocale = /** @class */ (function () {
     return RichContentLinkEditorLocale;
 }());
 RichContentLinkEditor.RegisterLocale(RichContentLinkEditorLocale, 'EN');
-//# sourceMappingURL=RichContentLinkEditorLocaleEN.js.map  
+//# sourceMappingURL=RichContentLinkEditorLocaleEN.js.map 
 var RichContentFontAwesomeIconEditorLocale = /** @class */ (function () {
     function RichContentFontAwesomeIconEditorLocale() {
         this.MenuLabel = "Fontawesome Icon";
@@ -2774,7 +2929,7 @@ var RichContentFontAwesomeIconEditorLocale = /** @class */ (function () {
     return RichContentFontAwesomeIconEditorLocale;
 }());
 RichContentFontAwesomeIconEditor.RegisterLocale(RichContentFontAwesomeIconEditorLocale, 'EN');
-//# sourceMappingURL=RichContentFontAwesomeIconEditorLocaleEN.js.map  
+//# sourceMappingURL=RichContentFontAwesomeIconEditorLocaleEN.js.map 
 var RichContentTableEditorLocale = /** @class */ (function () {
     function RichContentTableEditorLocale() {
         this.MenuLabel = "Table";
@@ -2795,7 +2950,7 @@ var RichContentTableEditorLocale = /** @class */ (function () {
     return RichContentTableEditorLocale;
 }());
 RichContentTableEditor.RegisterLocale(RichContentTableEditorLocale, 'EN');
-//# sourceMappingURL=RichContentTableEditorLocaleEN.js.map  
+//# sourceMappingURL=RichContentTableEditorLocaleEN.js.map 
 var RichContentTextEditorLocale = /** @class */ (function () {
     function RichContentTextEditorLocale() {
         this.Bold = "Bold";
@@ -2809,4 +2964,4 @@ var RichContentTextEditorLocale = /** @class */ (function () {
     return RichContentTextEditorLocale;
 }());
 RichContentTextEditor.RegisterLocale(RichContentTextEditorLocale, 'EN');
-//# sourceMappingURL=RichContentTextEditorLocaleEN.js.map  
+//# sourceMappingURL=RichContentTextEditorLocaleEN.js.map 

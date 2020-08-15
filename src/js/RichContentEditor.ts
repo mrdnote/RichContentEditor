@@ -402,7 +402,7 @@ class FileManager
                     </div>
                     <div class="rce-form-field">
                         <label for="${editorId}_ImageUrl" class="rce-label image-url-label"></label>
-                        <input id="${editorId}_ImageUrl" class="image-url validate rce-input" type="text" required="required" pattern="^([\\/].*|[#].+|\\w*:\\/\\/.+)" />
+                        <input id="${editorId}_ImageUrl" class="image-url validate rce-input" type="text" required="required" />
                         <span class="rce-error-text">${this.Locale.EnterUrlValidation}</span>
                     </div>
                     <div class="rce-input-group rce-hide featherlight-input-group">
