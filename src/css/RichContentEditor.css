@@ -64,20 +64,6 @@
     width: 100%;
 }
 
-.rce-image-wrapper.rce-image-block {
-    width: 100%;
-}
-
-.rce-image-wrapper.rce-image-left {
-    float: left;
-    margin-right: 5px;
-}
-
-.rce-image-wrapper.rce-image-right {
-    float: right;
-    margin-left: 5px;
-}
-
 .rce-video-wrapper {
     position: relative;
 }
@@ -86,13 +72,13 @@
     position: relative;
 }
 
-.rce-link-wrapper {
-    display: inline-block;
+.rce-link {
     position: relative;
+    display: inline-block;
 }
 
-.rce-link-wrapper * {
-    display: inline-block;
+.rce-link img {
+    width: 100%;
 }
 
 .rce-icon-wrapper {
@@ -118,6 +104,11 @@
     margin-bottom: 5px;
 }
 
+.rce-grid .rce-textarea-editor:focus {
+    /* Add padding because focussing adds a border to the edit area */
+    padding: 5px;
+}
+
 .rce-grid .rce-textarea-editor:hover {
     background-color: #f7f7f7;
     background-color: rgba(0, 0, 0, 0.1);
@@ -137,6 +128,7 @@
     background-color: rgba(0, 0, 0, 0.1);
 }
 
+.rce-grid-wrapper.edit-mode .rce-grid .rce-element-editor,
 .rce-grid-wrapper.edit-mode .rce-grid .rce-editor-wrapper {
     padding-left: 16px;
     padding-top: 5px;
@@ -144,6 +136,10 @@
     padding-bottom: 0;
     margin-bottom: 5px;
     border: dotted 1px silver;
+}
+
+.rce-grid-wrapper.edit-mode .rce-grid .rce-element-editor {
+    position: relative;
 }
 
 .rce-grid-wrapper.edit-mode .rce-grid a .rce-editor-wrapper {
@@ -157,6 +153,10 @@
 
 .rce-table-wrapper {
     position: relative;
+}
+
+.rce-grid-wrapper.edit-mode .rce-break {
+    height: 1.6rem;
 }
 
 .rce-grid-wrapper.edit-mode .rce-grid .rce-table-wrapper {
@@ -234,7 +234,8 @@
     padding: 0 5px;
 }
 
-.rce-grid-wrapper:not(.edit-mode) .add-button {
+.rce-grid-wrapper:not(.edit-mode) .add-button,
+.rce-grid-wrapper:not(.edit-mode) .paste-button {
     display: none;
 }
 

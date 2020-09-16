@@ -16,6 +16,7 @@ declare class RichContentEditorOptions {
     OnSave?: (html: string) => void;
     OnClose?: Function;
     OnChange?: Function;
+    OnCopy?: Function;
 }
 declare class GridFrameworkBase {
     private static _registrations;
@@ -70,22 +71,29 @@ declare class RichContentEditor {
     GetEditor?(editor: string): RichContentBaseEditor;
     Init(editorId: string, options: RichContentEditorOptions): RichContentEditor;
     GetDetectionSelectors(editor: RichContentBaseEditor): string;
-    ImportChildren(target: JQuery<HTMLElement>, source: JQuery<HTMLElement>, inTableCell: any, inLink: boolean): void;
+    ImportChildren(target: JQuery<HTMLElement>, source: JQuery<HTMLElement>, inTableCell: any, inLink: boolean, touchedElements: HTMLElement[]): void;
     Delete(): void;
     /**
      * Get the editor content as HTML.
      */
     GetHtml(): string;
     /**
+     * Get the editor content as text.
+     */
+    GetText(): string;
+    /**
+     * Get the editor content as well formed XML.
+     */
+    GetXml(): string;
+    /**
      * Save the editor content as HTML.
      */
     Save(): void;
     private clean;
-    private cleanElement;
-    EliminateElement(elem: JQuery<HTMLElement>): void;
+    CleanElement(elem: JQuery<HTMLElement>): void;
     private instantiateEditors;
     private handleChanged;
-    InsertEditor(editorTypeName: string, element: JQuery<HTMLElement>): void;
+    GetEditorByTypeName(editorTypeName: string): RichContentBaseEditor;
     CloseAllMenus(): void;
     CloseAllToolbars(): void;
     private showAddMenu;

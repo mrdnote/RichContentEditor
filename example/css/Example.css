@@ -36,6 +36,10 @@ img.fill {
     width: 100%;
 }
 
+a img {
+    width: 100%;
+}
+
 /* Provide sufficient contrast against white background */
 a {
     color: #0366d6;
@@ -134,12 +138,20 @@ div.text {
     margin-bottom: 1em;
 }
 
-.text:before {
-    clear: both;
-    content: '';
-    display: block;
-}
-
 iframe {
     width: 100%;
+}
+
+a[data-featherlight].float-right,
+a[data-featherlight].float-left {
+    width: 25%;
+}
+
+a[data-featherlight].right,
+a[data-featherlight].left {
+    width: 25%;
+}
+
+img.bordered {
+    border: solid 1px silver;
 }

@@ -1,7 +1,18 @@
-﻿class RichContentTextEditor extends RichContentBaseEditor
+﻿type CustomTagInsertedCallBack = (editor: RichContentEditor, tag: JQuery<HTMLElement>) => void;
+
+interface RichContentTextCustomTag
+{
+    Name: string;
+    Icon: string;
+    Html: string;
+    OnInsert: CustomTagInsertedCallBack;
+}
+
+class RichContentTextEditor extends RichContentBaseEditor
 {
     private static _localeRegistrations?: Dictionary<typeof RichContentTextEditorLocale> = {};
     private _locale?: RichContentTextEditorLocale;
+    private _customTags: RichContentTextCustomTag[] = [];
     private _selectionChangedBound = false;
 
     public static RegisterLocale?<T extends typeof RichContentTextEditorLocale>(localeType: T, language: string)
@@ -52,7 +63,19 @@
         this.setupEvents(textArea);
     }
 
-    protected getActualElement(elem: JQuery<HTMLElement>): JQuery<HTMLElement>
+    public RegisterCustomTag(name: string, icon: string, html: string, onInsert?: CustomTagInsertedCallBack)
+    {
+        const customTag: RichContentTextCustomTag = {
+            Name: name,
+            Icon: icon,
+            Html: html,
+            OnInsert: onInsert
+        };
+
+        this._customTags.push(customTag);
+    }
+
+    public GetActualElement(elem: JQuery<HTMLElement>): JQuery<HTMLElement>
     {
         if (elem.hasClass('rce-textarea-wrapper'))
         {
@@ -110,7 +133,7 @@
         return '.text';
     }
 
-    public Import(targetElement: JQuery<HTMLElement>, source: JQuery<HTMLElement>)
+    public Import(targetElement: JQuery<HTMLElement>, source: JQuery<HTMLElement>, touchedElements: HTMLElement[]): JQuery<HTMLElement>
     {
         if (source.hasClass('text')) 
         {
@@ -136,7 +159,11 @@
             this.Attach(textAreaWrapper, targetElement);
 
             this.setupEvents(textArea);
+
+            return textAreaWrapper;
         }
+
+        return null;
     }
 
     public GetMenuLabel(): string
@@ -161,16 +188,18 @@
 
     public Clean(elem: JQuery<HTMLElement>)
     {
-        if (elem.hasClass('rce-textarea-editor'))
-        {
-            elem.removeClass('rce-textarea-editor');
-            if (elem.attr('class') === '')
-                elem.removeAttr('class');
-            elem.removeAttr('contenteditable');
-            elem.addClass('text');
-        }
+        elem.removeClass('rce-textarea-editor');
+        if (elem.attr('class') === '')
+            elem.removeAttr('class');
+        elem.removeAttr('contenteditable');
+        elem.addClass('text');
 
         super.Clean(elem);
+    }
+
+    public Clicked(elem: JQuery<HTMLElement>): void
+    {
+        this.GetActualElement(elem)[0].focus();
     }
 
     public GetContextButtonText(_elem: JQuery<HTMLElement>): string
@@ -257,7 +286,7 @@
                 }
             }
 
-            editor.FileManager.ShowFileSelectionDialog(url, lightBox, targetBlank, false, 
+            editor.FileManager.ShowFileSelectionDialog(url, lightBox, targetBlank, false,
                 (url, lightBox, targetBlank) =>
                 {
                     _this.OnChange();
@@ -286,7 +315,47 @@
             );
         });
 
-        return [boldCommand, italicCommand, ulCommand, olCommand, linkCommand];
+        let commands = [boldCommand, italicCommand, ulCommand, olCommand, linkCommand];
+
+        for (var i = 0; i < this._customTags.length; i++)
+        {
+            const customTag = this._customTags[i];
+            const command = new ContextCommand(customTag.Name, 'fas fa-' + customTag.Icon, function (elem)
+            {
+                elem.find('.rce-textarea-editor').focus();
+                const htmlToInsert = `<span class="temp-inserted-tag">${customTag.Html}</span>`;
+                _this.insertHTML(htmlToInsert);
+                //document.execCommand('insertHTML', false, htmlToInsert);
+                const tempTag = elem.find('.temp-inserted-tag');
+                const contents = tempTag.contents() as JQuery<HTMLElement>;
+                tempTag.replaceWith(contents);
+                if (customTag.OnInsert)
+                {
+                    customTag.OnInsert(_this.RichContentEditorInstance, contents);
+                }
+            });
+            commands.push(command);
+        }
+
+        return commands;
+    }
+
+    private insertHTML(html: string): void
+    {
+        var sel, range;
+        if (window.getSelection && (sel = window.getSelection()).rangeCount)
+        {
+            range = sel.getRangeAt(0);
+            range.collapse(true);
+            var elem = $(html);
+            range.insertNode(elem[0]);
+
+            // Move the caret immediately after the inserted span
+            range.setStartAfter(elem[0]);
+            range.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(range);
+        }
     }
 
     public GetToolbarCommands(elem: JQuery<HTMLElement>): ContextCommand[]

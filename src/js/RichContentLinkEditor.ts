@@ -1,9 +1,4 @@
-﻿enum LinkAlignment
-{
-    None, Fill, Left, Right
-}
-
-class RichContentLinkEditor extends RichContentBaseEditor
+﻿class RichContentLinkEditor extends RichContentBaseEditor
 {
     private _appendElement: JQuery<HTMLElement>;
     private static _localeRegistrations?: Dictionary<typeof RichContentLinkEditorLocale> = {};
@@ -46,9 +41,9 @@ class RichContentLinkEditor extends RichContentBaseEditor
 
         if (elem)
         {
-            url = $('.rce-link', elem).attr(lightBox ? 'data-featherlight' : 'href');
-            lightBox = $('a[data-featherlight]', elem).length > 0;
-            targetBlank = $('a[target="_blank"]', elem).length > 0;
+            url = elem.attr(lightBox ? 'data-featherlight' : 'href');
+            lightBox = elem.is('[data-featherlight]');
+            targetBlank = elem.is('[target="_blank"]');
         }
 
         this.RichContentEditorInstance.FileManager.ShowFileSelectionDialog(url, lightBox, targetBlank, false,
@@ -61,33 +56,29 @@ class RichContentLinkEditor extends RichContentBaseEditor
                 }
                 else 
                 {
-                    this.InsertLink(url, lightBox, targetBlank, LinkAlignment.None, this._appendElement);
+                    this.InsertLink(url, lightBox, targetBlank, this._appendElement);
                 }
                 return true;
             }
         );
     }
 
-    public InsertLink(url: string, lightBox: boolean, targetBlank: boolean, alignment: LinkAlignment, targetElement?: JQuery<HTMLElement>)
+    public InsertLink(url: string, lightBox: boolean, targetBlank: boolean, targetElement?: JQuery<HTMLElement>)
     {
-        const linkWrapper = $('<div class="rce-link-wrapper"></div>');
-        const link = $('<a class="rce-link" onclick="return false;"></a>');
-        linkWrapper.append(link);
+        const link = $('<a class="rce-link rce-element-editor" onclick="return false;"></a>');
 
-        this.updateLink(linkWrapper, url, lightBox, targetBlank)
-        linkWrapper.addClass(this.getAlignmentClass(alignment));
+        this.updateLink(link, url, lightBox, targetBlank)
 
         if (!targetElement)
         {
             targetElement = $(`#${this.RichContentEditorInstance.EditorId} .rce-grid`);
         }
 
-        this.Attach(linkWrapper, targetElement);
+        this.Attach(link, targetElement);
     }
 
-    private updateLink(elem: JQuery<HTMLElement>, url: string, lightBox: boolean, targetBlank: boolean)
+    private updateLink(link: JQuery<HTMLElement>, url: string, lightBox: boolean, targetBlank: boolean)
     {
-        const link = elem.find('.rce-link');
         if (lightBox && RichContentUtils.HasFeatherLight())
         {
             if (RichContentUtils.IsVideoUrl(url))
@@ -114,27 +105,6 @@ class RichContentLinkEditor extends RichContentBaseEditor
         {
             link.removeAttr('target');
         }
-        this.removeEditorAlignmentClasses(elem);
-    }
-
-    private getAlignmentClass(alignment: LinkAlignment): string 
-    {
-        switch (alignment)
-        {
-            case LinkAlignment.Left: return 'rce-left';
-            case LinkAlignment.Right: return 'rce-right';
-            case LinkAlignment.Fill: return 'rce-fill';
-            case LinkAlignment.None: return '';
-            default: throw `Unexpected alignment value: ${alignment}`;
-        }
-    }
-
-    private getAlignment(elem: JQuery<HTMLElement>): LinkAlignment
-    {
-        if (elem.hasClass('rce-left')) return LinkAlignment.Left;
-        if (elem.hasClass('rce-fill')) return LinkAlignment.Fill;
-        if (elem.hasClass('rce-right')) return LinkAlignment.Right;
-        return LinkAlignment.None;
     }
 
     public GetDetectionSelectors(): string
@@ -142,72 +112,33 @@ class RichContentLinkEditor extends RichContentBaseEditor
         return 'a';
     }
 
-    protected getActualElement(elem: JQuery<HTMLElement>): JQuery<HTMLElement>
-    {
-        if (elem.is('.rce-link-wrapper'))
-        {
-            return elem.find('a.rce-link');
-        }
-
-        return elem;
-    }
-
-    public Import(targetElement: JQuery<HTMLElement>, source: JQuery<HTMLElement>)
+    public Import(targetElement: JQuery<HTMLElement>, source: JQuery<HTMLElement>, touchedElements: HTMLElement[]): JQuery<HTMLElement>
     {
         if (source.is('a'))
         {
             let clone = source.clone();
             clone.empty();
-            const linkWrapper = $('<div class="rce-link-wrapper"></div>');
-            linkWrapper.append(clone);
-            const link = linkWrapper.find('a');
-            link.addClass('rce-link');
-            link.attr('onclick', 'return false;');
+            clone.addClass('rce-link');
+            clone.attr('onclick', 'return false;');
 
-            this.RichContentEditorInstance.ImportChildren(link, source, false, true);
+            this.RichContentEditorInstance.ImportChildren(clone, source, false, true, touchedElements);
 
-            let alignment = LinkAlignment.None;
-            if (link.hasClass(this.RichContentEditorInstance.GridFramework.GetLeftAlignClass()))
-            {
-                alignment = LinkAlignment.Left;
-                link.removeClass(this.RichContentEditorInstance.GridFramework.GetLeftAlignClass());
-            }
-            else if (link.hasClass(this.RichContentEditorInstance.GridFramework.GetRightAlignClass()))
-            {
-                alignment = LinkAlignment.Right;
-                link.removeClass(this.RichContentEditorInstance.GridFramework.GetRightAlignClass());
-            }
-            else if (link.hasClass(this.RichContentEditorInstance.GridFramework.GetBlockAlignClass()))
-            {
-                alignment = LinkAlignment.Fill;
-                link.removeClass(this.RichContentEditorInstance.GridFramework.GetBlockAlignClass());
-            }
-            else if (this.hasCss(link, this.RichContentEditorInstance.GridFramework.GetBlockAlignCss()))
-            {
-                alignment = LinkAlignment.Fill;
-                link.css(this.RichContentEditorInstance.GridFramework.GetBlockAlignCss().Key, '');
-            }
-            if (alignment !== LinkAlignment.None)
-            {
-                linkWrapper.addClass(this.getAlignmentClass(alignment));
-            }
-            source.replaceWith(linkWrapper);
+            source.replaceWith(clone);
 
-            this.Attach(linkWrapper, targetElement);
-        }
-    }
+            this.Attach(clone, targetElement);
 
-    private hasCss(elem: JQuery<HTMLElement>, css: KeyValue<string>): boolean
-    {
-        if (css === null)
-        {
-            return false;
+            if ((window as any).Sortable)
+            {
+                (window as any).Sortable.create(clone[0], {
+                    group: 'link-content',
+                    draggable: '> .rce-element-editor'
+                });
+            }
+
+            return clone;
         }
 
-        if (elem.css(css.Key) === css.Value)
-            return true;
-
-        return false;
+        return null;
     }
 
     public GetMenuLabel(): string
@@ -227,31 +158,18 @@ class RichContentLinkEditor extends RichContentBaseEditor
 
     public Clean(elem: JQuery<HTMLElement>): void
     {
-        elem.removeAttr('onclick');
-        var wrapper = elem.closest('.rce-link-wrapper');
-        if (wrapper.hasClass('rce-left'))
-        {
-            elem.addClass(this.RichContentEditorInstance.GridFramework.GetLeftAlignClass());
-            const css = this.RichContentEditorInstance.GridFramework.GetLeftAlignCss();
-            if (css != null) elem.css(css.Key, css.Value);
-        }
-        if (wrapper.hasClass('rce-right'))
-        {
-            elem.addClass(this.RichContentEditorInstance.GridFramework.GetRightAlignClass());
-            const css = this.RichContentEditorInstance.GridFramework.GetRightAlignCss();
-            if (css != null) elem.css(css.Key, css.Value);
-        }
-        if (wrapper.hasClass('rce-fill'))
-        {
-            elem.addClass(this.RichContentEditorInstance.GridFramework.GetBlockAlignClass());
-            const css = this.RichContentEditorInstance.GridFramework.GetBlockAlignCss();
-            if (css != null) elem.css(css.Key, css.Value);
-        }
+        const _this = this;
 
+        elem.removeAttr('onclick');
         elem.removeClass('rce-link');
         if (elem.attr('class') === '')
             elem.removeAttr('class');
         elem.removeAttr('draggable');
+
+        elem.children().each(function ()
+        {
+            _this.Clean($(this));
+        });
 
         super.Clean(elem);
     }
@@ -259,6 +177,11 @@ class RichContentLinkEditor extends RichContentBaseEditor
     public GetContextButtonText(_elem: JQuery<HTMLElement>): string
     {
         return 'lnk';
+    }
+
+    public UseWrapper(): boolean
+    {
+        return false;
     }
 
     public GetContextCommands(_elem: JQuery<HTMLElement>): ContextCommand[]
@@ -275,14 +198,13 @@ class RichContentLinkEditor extends RichContentBaseEditor
             {
                 var insertCommand = new ContextCommand(editor.GetMenuLabel(), editor.GetMenuIconClasses(), function (elem)
                 {
-                    let inner = elem.find('a.rce-link');
-                    editor.Insert(inner);
+                    editor.Insert(elem);
                     _this.OnChange();
                     if ((window as any).Sortable)
                     {
-                        (window as any).Sortable.create(inner[0], {
-                            group: 'col',
-                            draggable: '.rce-editor-wrapper'
+                        (window as any).Sortable.create(elem[0], {
+                            group: 'link-content',
+                            draggable: '> .rce-element-editor'
                         });
                     }
                 });
@@ -297,11 +219,6 @@ class RichContentLinkEditor extends RichContentBaseEditor
         result.push(editCommand);
 
         return result;
-    }
-
-    private removeEditorAlignmentClasses(elem: JQuery<HTMLElement>)
-    {
-        elem.removeClass('rce-left rce-fill rce-right');
     }
 }
 

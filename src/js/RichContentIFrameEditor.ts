@@ -142,7 +142,12 @@
         return 'iframe';
     }
 
-    public Import(targetElement: JQuery<HTMLElement>, source: JQuery<HTMLElement>)
+    public GetActualElement(elem: JQuery<HTMLElement>): JQuery<HTMLElement>
+    {
+        return elem.find('iframe');
+    }
+
+    public Import(targetElement: JQuery<HTMLElement>, source: JQuery<HTMLElement>, touchedElements: HTMLElement[]): JQuery<HTMLElement>
     {
         if (source.is('iframe'))
         {
@@ -153,7 +158,11 @@
             source.replaceWith(wrapper);
 
             this.Attach(wrapper, targetElement);
+
+            return wrapper;
         }
+
+        return null;
     }
 
     public GetMenuLabel(): string

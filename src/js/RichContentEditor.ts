@@ -28,6 +28,8 @@
     public OnClose?: Function = null;
 
     public OnChange?: Function = null;
+
+    public OnCopy?: Function = null;
 }
 
 class GridFrameworkBase
@@ -482,10 +484,11 @@ class RichContentEditor
         }
         editorElement.find('.rce-editor-save').toggleClass('rce-hide', !options.ShowSaveButton)
         editorElement.find('.rce-editor-close').toggleClass('rce-hide', !options.ShowCloseButton)
-        this.ImportChildren(editorElement, $(gridSelector), false, false);
+        const touchedElements: HTMLElement[] = [];
+        this.ImportChildren(editorElement, $(gridSelector), false, false, touchedElements);
         $(gridSelector).replaceWith(editorElement);
 
-        var grid = $(gridSelector + ' .rce-grid');
+        const grid = $(gridSelector + ' .rce-grid');
 
         grid.bind('contextmenu', function (e)
         {
@@ -499,7 +502,7 @@ class RichContentEditor
         {
             (window as any).Sortable.create(grid[0],
                 {
-                    draggable: '.rce-editor-wrapper'
+                    draggable: '.rce-element-editor'
                 });
         }
 
@@ -556,10 +559,49 @@ class RichContentEditor
             $(gridSelector).addClass('edit-mode');
         });
 
+        $(gridSelector + ' .rce-editor-copy').click(function ()
+        {
+            const html = '<rce-clip>' + _this.GetHtml() + '</rce-clip>';
+            const type = 'text/plain';
+            const blob = new (window as any).Blob([html], { type });
+            const data = [new (window as any).ClipboardItem({ ["text/plain"]: blob })];
+            (navigator as any).clipboard.write(data).then(function ()
+            {
+                // Success!
+                if (_this.Options.OnCopy)
+                {
+                    _this.Options.OnCopy();
+                }
+            }, function (err)
+            {
+                alert(_this.Locale.CannotWriteToClipBoardMessage + "\n" + err);
+            });
+        });
+
         $(gridSelector + ' .add-button').click(function ()
         {
             _this.CloseAllMenus();
             _this.showAddMenu($(this));
+        });
+
+        $(gridSelector + ' .paste-button').click(function ()
+        {
+            _this.CloseAllMenus();
+            (window as any).navigator.clipboard.readText().then(
+                html =>
+                {
+                    $('.temp-container').remove();
+                    $('body').append(`<div class="temp-container hide">${html}</div>`);
+                    const clip = $('.temp-container rce-clip');
+                    if (clip.length == 0)
+                    {
+                        alert(_this.Locale.NoClipBoardDataMessage);
+                    }
+                    const touchedElements: HTMLElement[] = [];
+                    _this.ImportChildren(editorElement, clip, false, false, touchedElements);
+                    _this.handleChanged();
+                }
+            );
         });
 
         $(document).click(function (e)
@@ -614,20 +656,33 @@ class RichContentEditor
         return result;
     }
 
-    public ImportChildren(target: JQuery<HTMLElement>, source: JQuery<HTMLElement>, inTableCell, inLink: boolean)
+    public ImportChildren(target: JQuery<HTMLElement>, source: JQuery<HTMLElement>, inTableCell, inLink: boolean, touchedElements: HTMLElement[])
     {
         const _this = this;
 
         const elements = source.children();
         elements.each(function ()
         {
-            for (let key in _this.RegisteredEditors)
+            if (touchedElements.indexOf(this) === -1)
             {
-                const editor = _this.RegisteredEditors[key];
-                if ((!inTableCell || editor.AllowInTableCell()) && (!inLink || editor.AllowInLink()))
+                for (let key in _this.RegisteredEditors)
                 {
-                    editor.Import(target, $(this));
+                    const editor = _this.RegisteredEditors[key];
+                    if ((!inTableCell || editor.AllowInTableCell()) && (!inLink || editor.AllowInLink()))
+                    {
+                        const insertedElement = editor.Import(target, $(this), touchedElements);
+                        if (insertedElement != null)
+                        {
+                            insertedElement.data('editorTypeName', key);
+                            if (editor.UseWrapper())
+                            {
+                                const actualElement = editor.GetActualElement(insertedElement);
+                                editor.CopyCssClasses(actualElement, insertedElement);
+                            }
+                        }
+                    }
                 }
+                touchedElements.push(this); 
             }
         });
     }
@@ -644,11 +699,35 @@ class RichContentEditor
      */
     public GetHtml()
     {
-        let copy = $(this.GridSelector + ' .rce-grid').clone();
+        let copy = $(this.GridSelector + ' .rce-grid').clone(true, true);
 
         this.clean(copy);
 
         return copy.html();
+    }
+
+    /**
+     * Get the editor content as text.
+     */
+    public GetText()
+    {
+        let copy = $(this.GridSelector + ' .rce-grid').clone(true, true);
+
+        this.clean(copy);
+
+        return copy.text();
+    }
+
+    /**
+     * Get the editor content as well formed XML.
+     */
+    public GetXml()
+    {
+        let copy = $(this.GridSelector + ' .rce-grid').clone(true, true);
+
+        this.clean(copy);
+
+        return new XMLSerializer().serializeToString(copy[0]);
     }
 
     /**
@@ -679,11 +758,11 @@ class RichContentEditor
 
         elem.children().each(function ()
         {
-            _this.cleanElement($(this));
+            _this.CleanElement($(this));
         });
     }
 
-    private cleanElement(elem: JQuery<HTMLElement>)
+    public CleanElement(elem: JQuery<HTMLElement>)
     {
         const _this = this;
 
@@ -693,33 +772,23 @@ class RichContentEditor
         }
         else if (elem.hasClass('rce-editor-wrapper') && !elem.hasClass('rce-editor-wrapper-keep'))
         {
-            _this.EliminateElement(elem);
+            var editorTypeName = elem.data('editorTypeName');
+            var editor = this.GetEditorByTypeName(editorTypeName);
+            editor.EliminateElementWrapper(elem);
         }
         else
         {
             _this.clean(elem);
+
+            elem.removeClass('rce-editor-wrapper rce-element-editor rce-editor-wrapper-keep');
+
+            var editorTypeName = elem.data('editorTypeName');
+            if (editorTypeName)
+            {
+                var editor = this.GetEditorByTypeName(editorTypeName);
+                editor.Clean(elem);
+            }
         }
-
-        elem.removeClass('rce-editor-wrapper rce-editor-wrapper-keep');
-
-        for (let key in this.RegisteredEditors)
-        {
-            var editor = this.RegisteredEditors[key];
-            editor.Clean(elem);
-        }
-    }
-
-    public EliminateElement(elem: JQuery<HTMLElement>)
-    {
-        const _this = this;
-
-        var children = elem.children();
-        children.each(function ()
-        {
-            _this.cleanElement($(this));
-        });
-        elem.children().detach().appendTo(elem.parent());
-        elem.remove();
     }
 
     private instantiateEditors(editors: string[])
@@ -763,27 +832,41 @@ class RichContentEditor
         }
     }
 
-    public InsertEditor(editorTypeName: string, element: JQuery<HTMLElement>)
+    //public InsertEditor(editorTypeName: string, element: JQuery<HTMLElement>)
+    //{
+    //    let editor: RichContentBaseEditor = this.GetEditorByTypeName(editorTypeName);
+
+    //    if (editor === null)
+    //    {
+    //        console.error(`Editor with name ${editorTypeName} not registered!`);
+    //    }
+    //    else
+    //    {
+    //        editor.Insert(element);
+    //    }
+
+    //    let editorElement = element;
+    //    if (editor.UseWrapper())
+    //    {
+    //        editorElement = element.closest('.rce-editor-wrapper');
+    //    }
+    //    editorElement.data('editorTypeName', editorTypeName);
+    //}
+
+    public GetEditorByTypeName(editorTypeName: string): RichContentBaseEditor
     {
-        let editor: RichContentBaseEditor = null;
+        let result: RichContentBaseEditor = null;
 
         for (let key in this.RegisteredEditors)
         {
             const registeredEditor = this.RegisteredEditors[key];
             if (registeredEditor.Name === editorTypeName)
             {
-                editor = registeredEditor;
+                result = registeredEditor;
             }
         }
 
-        if (editor === null)
-        {
-            console.error(`Editor with name ${editorTypeName} not registered!`);
-        }
-        else
-        {
-            editor.Insert(element);
-        }
+        return result;
     }
 
     public CloseAllMenus()
@@ -960,11 +1043,13 @@ class HtmlTemplates
             <div id="${id}" class="rce-grid-wrapper edit-mode">
                 <div class="rce-grid">
                     <a class="rce-button rce-button-flat rce-menu-button add-button"><i class="fas fa-plus-circle"></i></a>
+                    <a class="rce-button rce-button-flat rce-menu-button paste-button"><i class="fas fa-paste"></i></a>
                 </div>
 
                 <div class="rce-editor-top-icons">
                     <button type="button" class="rce-button rce-button-toolbar rce-editor-preview-lock"><i class="fas fa-eye"></i></button>
                     <button type="button" class="rce-button rce-button-toolbar rce-editor-preview-unlock rce-hide"><i class="fas fa-eye-slash"></i></button>
+                    <button type="button" class="rce-button rce-button-toolbar rce-editor-copy"><i class="fas fa-copy"></i></button>
                     <button type="button" class="rce-button rce-button-toolbar rce-editor-save rce-hide"><i class="fas fa-save"></i></button>
                     <a href="javascript:" class="rce-button rce-button-toolbar rce-editor-close rce-hide"><i class="fas fa-times"></i></a>
                 </div>

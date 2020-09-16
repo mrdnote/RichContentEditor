@@ -17,11 +17,6 @@ var Editor = /** @class */ (function () {
             OnSave: this.handleSave
         };
         var rce = this.instantiateMainEditor(options);
-        var tableCssClasses = ['red', 'green', 'yellow'];
-        if (framework === "GridFrameworkMaterialize") {
-            tableCssClasses.push('card-panel');
-        }
-        rce.GetEditor("RichContentTableEditor").RegisterCssClasses(tableCssClasses);
         var options2 = {
             Language: 'EN',
             GridFramework: framework
@@ -50,6 +45,13 @@ var Editor = /** @class */ (function () {
                 window.M.textareaAutoResize($('#ExportTextArea'));
             }
         });
+        $('#ExportXmlButton').click(function () {
+            $('#ExportTextArea').val(rce.GetXml().trim());
+            $('#ExportTextArea').removeClass('rce-hide');
+            if (framework === 'GridFrameworkMaterialize') {
+                window.M.textareaAutoResize($('#ExportTextArea'));
+            }
+        });
         $('#ContentEditButton').click(function () {
             $(this).addClass('rce-hide');
             rce = _this.instantiateMainEditor(options);
@@ -62,7 +64,7 @@ var Editor = /** @class */ (function () {
         $('#ContentEditButton').removeClass('rce-hide');
     };
     Editor.prototype.getEditors = function () {
-        var editors = ['RichContentTextEditor', 'RichContentHeadingEditor', 'RichContentFontAwesomeIconEditor', 'RichContentLinkEditor', 'RichContentVideoEditor', 'RichContentIFrameEditor'];
+        var editors = ['RichContentTextEditor', 'RichContentHeadingEditor', 'RichContentFontAwesomeIconEditor', 'RichContentLinkEditor', 'RichContentVideoEditor', 'RichContentIFrameEditor', 'RichContentBreakEditor'];
         if ($('#ImageCheckBox').prop('checked')) {
             editors.push('RichContentImageEditor');
         }
@@ -72,8 +74,22 @@ var Editor = /** @class */ (function () {
         return editors;
     };
     Editor.prototype.instantiateMainEditor = function (options) {
-        var editor = new RichContentEditor().Init('RichContentEditorCanvas', options);
-        return editor;
+        var rce = new RichContentEditor().Init('RichContentEditorCanvas', options);
+        var framework = $('#Framework').val();
+        var tableCssClasses = ['red', 'green', 'yellow'];
+        if (framework === "GridFrameworkMaterialize") {
+            tableCssClasses.push('card-panel');
+            rce.GetEditor("RichContentLinkEditor").RegisterCssClasses(['left', 'right']);
+            rce.GetEditor("RichContentImageEditor").RegisterCssClasses(['left', 'right']);
+            rce.GetEditor("RichContentTextEditor").RegisterCustomTag('Input field', 'edit', '<input type="text" class="browser-default" />', function (editor, tag) { tag.val("Inserted on " + new Date().toLocaleTimeString()); });
+        }
+        if (framework === "GridFrameworkBootstrap") {
+            rce.GetEditor("RichContentLinkEditor").RegisterCssClasses(['float-left', 'float-right']);
+            rce.GetEditor("RichContentImageEditor").RegisterCssClasses(['float-left', 'float-right', 'bordered']);
+            rce.GetEditor("RichContentTextEditor").RegisterCustomTag('Input field', 'edit', '<input/>', function (editor, tag) { tag.val("Inserted on " + new Date().toLocaleTimeString()); });
+        }
+        rce.GetEditor("RichContentTableEditor").RegisterCssClasses(tableCssClasses);
+        return rce;
     };
     return Editor;
 }());

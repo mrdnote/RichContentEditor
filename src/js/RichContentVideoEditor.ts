@@ -125,7 +125,12 @@
         return 'div.video';
     }
 
-    public Import(targetElement: JQuery<HTMLElement>, source: JQuery<HTMLElement>)
+    public GetActualElement(elem: JQuery<HTMLElement>): JQuery<HTMLElement>
+    {
+        return elem.find('div.video');
+    }
+
+    public Import(targetElement: JQuery<HTMLElement>, source: JQuery<HTMLElement>, touchedElements: HTMLElement[]): JQuery<HTMLElement>
     {
         if (source.is('div.video'))
         {
@@ -135,8 +140,12 @@
             wrapper.append(clone);
             source.replaceWith(wrapper);
 
-            this.Attach(wrapper, targetElement);
+            this.Attach(wrapper, targetElement); 
+
+            return wrapper;
         }
+
+        return null;
     }
 
     public GetMenuLabel(): string

@@ -23,12 +23,6 @@ class Editor
         };
 
         let rce = this.instantiateMainEditor(options);
-        let tableCssClasses = ['red', 'green', 'yellow'];
-        if (framework === "GridFrameworkMaterialize")
-        {
-            tableCssClasses.push('card-panel');
-        }
-        rce.GetEditor("RichContentTableEditor").RegisterCssClasses(tableCssClasses);
 
         const options2: RichContentEditorOptions =
         {
@@ -70,6 +64,16 @@ class Editor
             }
         });
 
+        $('#ExportXmlButton').click(function ()
+        {
+            $('#ExportTextArea').val(rce.GetXml().trim());
+            $('#ExportTextArea').removeClass('rce-hide');
+            if (framework === 'GridFrameworkMaterialize')
+            {
+                (window as any).M.textareaAutoResize($('#ExportTextArea'));
+            }
+        });
+
         $('#ContentEditButton').click(function ()
         {
             $(this).addClass('rce-hide');
@@ -89,7 +93,7 @@ class Editor
 
     private getEditors(): string[]
     {
-        const editors: string[] = ['RichContentTextEditor', 'RichContentHeadingEditor', 'RichContentFontAwesomeIconEditor', 'RichContentLinkEditor', 'RichContentVideoEditor', 'RichContentIFrameEditor'];
+        const editors: string[] = ['RichContentTextEditor', 'RichContentHeadingEditor', 'RichContentFontAwesomeIconEditor', 'RichContentLinkEditor', 'RichContentVideoEditor', 'RichContentIFrameEditor', 'RichContentBreakEditor'];
 
         if ($('#ImageCheckBox').prop('checked'))
         {
@@ -106,7 +110,27 @@ class Editor
 
     private instantiateMainEditor(options: RichContentEditorOptions)
     {
-        const editor = new RichContentEditor().Init('RichContentEditorCanvas', options);
-        return editor;
+        const rce = new RichContentEditor().Init('RichContentEditorCanvas', options);
+
+        const framework = $('#Framework').val() as string;
+        let tableCssClasses = ['red', 'green', 'yellow'];
+        if (framework === "GridFrameworkMaterialize")
+        {
+            tableCssClasses.push('card-panel');
+            rce.GetEditor("RichContentLinkEditor").RegisterCssClasses(['left', 'right']);
+            rce.GetEditor("RichContentImageEditor").RegisterCssClasses(['left', 'right']);
+            (rce.GetEditor("RichContentTextEditor") as RichContentTextEditor).RegisterCustomTag('Input field', 'edit', '<input type="text" class="browser-default" />',
+                (editor: RichContentEditor, tag: JQuery<HTMLElement>) => { (tag as JQuery<HTMLInputElement>).val(`Inserted on ${new Date().toLocaleTimeString()}`); });
+        }
+        if (framework === "GridFrameworkBootstrap")
+        {
+            rce.GetEditor("RichContentLinkEditor").RegisterCssClasses(['float-left', 'float-right']);
+            rce.GetEditor("RichContentImageEditor").RegisterCssClasses(['float-left', 'float-right', 'bordered']);
+            (rce.GetEditor("RichContentTextEditor") as RichContentTextEditor).RegisterCustomTag('Input field', 'edit', '<input/>',
+                (editor: RichContentEditor, tag: JQuery<HTMLElement>) => { (tag as JQuery<HTMLInputElement>).val(`Inserted on ${new Date().toLocaleTimeString()}`); });
+        }
+        rce.GetEditor("RichContentTableEditor").RegisterCssClasses(tableCssClasses);
+
+        return rce;
     }
 }

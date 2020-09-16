@@ -14,6 +14,7 @@ for %%x in (
     src\js\RichContentLinkEditor.js,
     src\js\RichContentFontAwesomeIconEditor.js,
     src\js\RichContentTableEditor.js,
+    src\js\RichContentBreakEditor.js,
     src\js\GridFrameworkBootstrap.js,
     src\js\GridFrameworkMaterialize.js,
     src\js\RichContentUtils.js,
@@ -55,6 +56,17 @@ for %%x in (
 IF %ERRORLEVEL% NEQ 0 PAUSE
 
 copy src\css\RichContentEditor.css dist\css\RichContentEditor.css /Y
-
 copy src\js\*.d.ts dist\js /Y
 copy src\js\Locale\*.d.ts dist\js /Y
+
+copy dist\js D:\Projects\Dnote\Dnote.CMS\Dnote.CMS.Web\wwwroot\js /Y
+copy dist\css D:\Projects\Dnote\Dnote.CMS\Dnote.CMS.Web\wwwroot\css /Y
+
+copy dist\js D:\Projects\Math4All\Math4All\Math4All.Web\wwwroot\js /Y
+copy dist\css D:\Projects\Math4All\Math4All\Math4All.Web\wwwroot\css /Y
+
+copy dist\js D:\Projects\StudioVO\OnderwijsArena\OnderwijsArena.Web\wwwroot\js /Y
+copy dist\css D:\Projects\StudioVO\OnderwijsArena\OnderwijsArena.Web\wwwroot\css /Y
+
+copy dist\js D:\Projects\Dnote\mrdnote.github.io\RichContentEditor\dist\js /Y
+copy dist\css D:\Projects\Dnote\mrdnote.github.io\RichContentEditor\dist\css /Y

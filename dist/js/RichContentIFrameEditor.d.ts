@@ -13,7 +13,8 @@ declare class RichContentIFrameEditor extends RichContentBaseEditor {
     InsertElement(url: string, height: number, targetElement?: JQuery<HTMLElement>): void;
     private updateElement;
     GetDetectionSelectors(): string;
-    Import(targetElement: JQuery<HTMLElement>, source: JQuery<HTMLElement>): void;
+    GetActualElement(elem: JQuery<HTMLElement>): JQuery<HTMLElement>;
+    Import(targetElement: JQuery<HTMLElement>, source: JQuery<HTMLElement>, touchedElements: HTMLElement[]): JQuery<HTMLElement>;
     GetMenuLabel(): string;
     GetMenuIconClasses(): string;
     AllowInTableCell(): boolean;

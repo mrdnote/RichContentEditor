@@ -156,7 +156,12 @@ class RichContentFontAwesomeIconEditor extends RichContentBaseEditor
         return '.fas';
     }
 
-    public Import(targetElement: JQuery<HTMLElement>, source: JQuery<HTMLElement>)
+    public GetActualElement(elem: JQuery<HTMLElement>): JQuery<HTMLElement>
+    {
+        return elem.find('i.fas');
+    }
+
+    public Import(targetElement: JQuery<HTMLElement>, source: JQuery<HTMLElement>, touchedElements: HTMLElement[]): JQuery<HTMLElement>
     {
         if (source.is('i.fas'))
         {
@@ -184,7 +189,11 @@ class RichContentFontAwesomeIconEditor extends RichContentBaseEditor
             source.replaceWith(imgWrapper);
 
             this.Attach(imgWrapper, targetElement);
+
+            return imgWrapper;
         }
+
+        return null;
     }
 
     public GetMenuLabel(): string

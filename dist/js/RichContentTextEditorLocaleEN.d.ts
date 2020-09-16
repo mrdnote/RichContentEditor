@@ -6,4 +6,5 @@ declare class RichContentTextEditorLocale {
     UnorderedList: string;
     Link: string;
     NewLinkText: string;
+    InputCommandLabel: string;
 }

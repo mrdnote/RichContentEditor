@@ -9,7 +9,8 @@ declare class RichContentHeadingEditor extends RichContentBaseEditor {
     InsertContent(html?: string, targetElement?: JQuery<HTMLElement>): void;
     private setupEvents;
     GetDetectionSelectors(): string;
-    Import(targetElement: JQuery<HTMLElement>, source: JQuery<HTMLElement>): void;
+    GetActualElement(elem: JQuery<HTMLElement>): JQuery<HTMLElement>;
+    Import(targetElement: JQuery<HTMLElement>, source: JQuery<HTMLElement>, touchedElements: HTMLElement[]): JQuery<HTMLElement>;
     GetMenuLabel(): string;
     GetMenuIconClasses(): string;
     AllowInTableCell(): boolean;

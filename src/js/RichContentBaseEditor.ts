@@ -64,9 +64,21 @@ class RichContentBaseEditor
         return '';
     }
 
-    public Import(_target: JQuery<HTMLElement>, _source: JQuery<HTMLElement>)
+    public Import(_target: JQuery<HTMLElement>, _source: JQuery<HTMLElement>, touchedElements: HTMLElement[]): JQuery<HTMLElement>
     {
         throw new Error("Method not implemented.");
+    }
+
+    public CopyCssClasses(source: JQuery<HTMLElement>, target: JQuery<HTMLElement>)
+    {
+        for (var i = 0; i < this._registeredCssClasses.length; i++)
+        {
+            const cssClass = this._registeredCssClasses[i];
+            if (source.hasClass(cssClass))
+            {
+                target.addClass(cssClass);
+            }
+        }
     }
 
     public GetMenuLabel(): string
@@ -79,9 +91,24 @@ class RichContentBaseEditor
         throw new Error(`GetMenuIconClasses() not implemented in ${this.constructor['name']}!`);
     }
 
+    public Clicked(elem: JQuery<HTMLElement>): void
+    {
+
+    }
+
     public GetContextButtonText(_elem: JQuery<HTMLElement>): string
     {
         throw new Error(`GetContextButtonText() not implemented in ${this.constructor['name']}!`);
+    }
+
+    public UseWrapper(): boolean
+    {
+        return true;
+    }
+
+    public GetEditorTypeName(): string
+    {
+        return this.constructor['name'];
     }
 
     public GetContextCommands(_elem: JQuery<HTMLElement>): ContextCommand[]
@@ -116,11 +143,17 @@ class RichContentBaseEditor
         {
             const elem = $(this);
 
-            elem.addClass('rce-editor-wrapper');
-            if (keepWhenCleaning) elem.addClass('rce-editor-wrapper-keep');
+            if (_this.UseWrapper())
+            {
+                elem.addClass('rce-editor-wrapper');
+                if (keepWhenCleaning) elem.addClass('rce-editor-wrapper-keep');
+            }
+            elem.data('editorTypeName', _this.GetEditorTypeName());
+            elem.addClass('rce-element-editor');
             const menuButtonText = _this.GetContextButtonText(elem);
             const menuButton = $(`<button type="button" class="hover-button rce-menu-button">${menuButtonText}◀</button>`);
             elem.prepend(menuButton);
+
             menuButton.click(function ()
             {
                 _this.showContextMenu(elem, menuButton);
@@ -131,6 +164,14 @@ class RichContentBaseEditor
                 e.preventDefault();
                 e.stopPropagation();
                 _this.showContextMenu(elem, new XYPosition(e.clientX + window.scrollX, e.clientY + window.scrollY));
+            });
+
+            elem.click(function (e)
+            {
+                if (!$(e.target).hasClass('rce-menu-button'))
+                {
+                    _this.Clicked(elem);
+                }
             });
 
             elem.focusin(function (e)
@@ -145,10 +186,28 @@ class RichContentBaseEditor
         });
     }
 
+    public EliminateElementWrapper(elem: JQuery<HTMLElement>)
+    {
+        const _this = this;
+
+        var children = elem.children();
+        children.each(function ()
+        {
+            _this.RichContentEditorInstance.CleanElement($(this));
+        });
+        const detachedElements = elem.children().detach();
+
+        this.CopyCssClasses(elem, detachedElements);
+
+        elem.replaceWith(detachedElements);
+
+        _this.Clean(detachedElements)
+    }
+
     private showContextMenu(elem, buttonOrPosition: JQuery<HTMLElement> | XYPosition)
     {
         const _this = this;
-        const actualElement = _this.getActualElement(elem);
+        const actualElement = _this.GetActualElement(elem);
 
         this.RichContentEditorInstance.CloseAllMenus();
 
@@ -217,7 +276,7 @@ class RichContentBaseEditor
         RichContentUtils.ShowMenu(menu, buttonOrPosition);
     }
 
-    protected getActualElement(elem: JQuery<HTMLElement>): JQuery<HTMLElement>
+    public GetActualElement(elem: JQuery<HTMLElement>): JQuery<HTMLElement>
     {
         return elem;
     }

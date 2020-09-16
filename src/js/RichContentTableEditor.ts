@@ -49,6 +49,8 @@
 
     public Clean(elem: JQuery<HTMLElement>)
     {
+        const _this = this;
+
         if (elem.hasClass('col'))
         {
             var alignment = this.getTableColumnAlignment(elem);
@@ -58,13 +60,19 @@
 
         if (elem.hasClass('inner') && elem.parent().hasClass('col'))
         {
-            this.RichContentEditorInstance.EliminateElement(elem);
+            this.EliminateElementWrapper(elem);
         }
 
         if (elem.hasClass('rce-table')) 
         {
             elem.removeClass('rce-table').addClass('table');
         }
+
+        elem.children().each(function ()
+        {
+            _this.Clean($(this)); 
+        });
+
 
         super.Clean(elem);
     }
@@ -91,12 +99,12 @@
         {
             (window as any).Sortable.create(row[0], {
                 group: 'row-content',
-                draggable: '.rce-editor-wrapper'
+                draggable: '> .rce-element-editor'
             });
 
             (window as any).Sortable.create(row.closest('.rce-table')[0], {
                 group: 'table-content',
-                draggable: '.rce-editor-wrapper'
+                draggable: '> .rce-element-editor'
             });
         }
     }
@@ -135,7 +143,7 @@
         {
             (window as any).Sortable.create(col.find('.inner')[0], {
                 group: 'column-content',
-                draggable: '.rce-editor-wrapper'
+                draggable: '> .rce-element-editor'
             });
         }
     }
@@ -175,7 +183,7 @@
         return '.table,.row,.col';
     }
 
-    public Import(targetElement: JQuery<HTMLElement>, source: JQuery<HTMLElement>)
+    public Import(targetElement: JQuery<HTMLElement>, source: JQuery<HTMLElement>, touchedElements: HTMLElement[]): JQuery<HTMLElement>
     {
         const _this = this;
 
@@ -194,7 +202,7 @@
             cols.each(function ()
             {
                 var inner = $('<div class="inner"></div>');
-                _this.RichContentEditorInstance.ImportChildren(inner, $(this), true, false);
+                _this.RichContentEditorInstance.ImportChildren(inner, $(this), true, false, touchedElements);
 
                 var alignment = _this.getFrameworkTableColumnAlignment($(this));
                 _this.setEditorColumnAlignment($(this), alignment);
@@ -212,7 +220,11 @@
             source.replaceWith(tableWrapper);
 
             this.Attach(tableWrapper, targetElement);
+
+            return tableWrapper;
         }
+
+        return null;
     }
 
     public GetMenuLabel(): string
@@ -273,7 +285,7 @@
                     {
                         (window as any).Sortable.create(inner[0], {
                             group: 'col',
-                            draggable: '.rce-editor-wrapper'
+                            draggable: '> .rce-element-editor'
                         });
                     }
                 });
@@ -414,7 +426,7 @@
             {
                 (window as any).Sortable.create(elem[0], {
                     group: 'row-content',
-                    draggable: '.rce-editor-wrapper'
+                    draggable: '> .rce-element-editor'
                 });
             }
         });
@@ -439,7 +451,7 @@
         return result;
     }
 
-    protected getActualElement(elem: JQuery<HTMLElement>): JQuery<HTMLElement>
+    public GetActualElement(elem: JQuery<HTMLElement>): JQuery<HTMLElement>
     {
         if (elem.hasClass('rce-table-wrapper'))
         {

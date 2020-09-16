@@ -6,7 +6,7 @@
     <title>D|Note HTML Editor</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/featherlight@1.7.14/release/featherlight.min.css" />
-    <!--<link rel="stylesheet" href="../dist/css/RichContentEditor.css?ts=120520200225" />-->
+    <!--<link rel="stylesheet" href="../dist/css/RichContentEditor.css?ts=150820201534" />-->
     <link rel="stylesheet" href="../src/css/RichContentEditor.css" />
     <link rel="stylesheet" href="css/Example.css" />
     <script src="https://kit.fontawesome.com/5a9fdc3af2.js" crossorigin="anonymous"></script>
@@ -73,16 +73,21 @@
             <button id="ContentEditButton" class="rce-button rce-button-toolbar rce-hide" type="button" style="position: absolute; right: 0; margin-top: 8px;"><i class="fas fa-edit" aria-hidden="true"></i></button>
 
             <div id="RichContentEditorCanvas" style="min-height: 147px; margin-top: 40px;">
-                <img class="float-right" src="https://dnoteweb.blob.core.windows.net:443/editor-uploads/Dnote%20Logo%20400px.png" />
+                <a data-featherlight="https://dnoteweb.blob.core.windows.net:443/editor-uploads/Dnote%20Logo%20400px.png" href="javascript:" class="float-right">
+                    <img src="https://dnoteweb.blob.core.windows.net:443/editor-uploads/Dnote%20Logo%20400px.png" />
+                </a>
                 <h1>Welcome to DNote's Rich Content Editor</h1>
                 <div><b>Hi!</b><div>Start by clicking the "plus"-icon below...</div></div>
                 <div class="table">
                     <div class="row">
-                        <div class="col col-12 col-md-12 col-lg-12 col-xl-6"><div class="text">A table column...</div></div>
-                        <div class="col col-12 col-md-12 col-lg-12 col-xl-6"><div class="text">Second column</div></div>
+                        <div class="col col-12 col-md-12 col-lg-12 col-xl-6"><div class="text">A table column...</div><div class="text">.. more text ...</div></div>
+                        <div class="col col-12 col-md-12 col-lg-12 col-xl-6">
+                            <div class="text">Second column</div>
+                            <a href="/test1" style=""><span class="text">A link</span></a>
+                        </div>
                     </div>
                 </div>
-                <a href="#test"><i class="fas fa-apple-alt float-left"></i><span class="text" data="Bla">An apple</span></a>
+                <a href="#test"><i class="fas fa-apple-alt"></i><span class="text">An apple</span></a>
             </div>
             <div class="clearfix"></div>
 
@@ -109,7 +114,8 @@
                             <div class="card-body">
                                 <h3 class="card-title">Exportable</h3>
                                 <p>Export as html using GetHtml()</p>
-                                <button id="ExportButton" type="button" class="btn btn-primary">Export</button>
+                                <button id="ExportButton" type="button" class="btn btn-primary">Export HTML</button>
+                                <button id="ExportXmlButton" type="button" class="btn btn-primary">Export XML</button>
                                 <textarea id="ExportTextArea" class="rce-hide form-control" rows="10"></textarea>
                             </div>
                         </div>
@@ -192,8 +198,8 @@ new RichContentEditor().Init('MyEditor', options);</pre>
     <script src="https://cdn.jsdelivr.net/npm/rangy@1.3.0/lib/rangy-core.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/featherlight@1.7.14/release/featherlight.min.js"></script>
 
-    <!--<script src="../dist/js/RichContentEditor.js?ts=120520200225"></script>
-    <script src="../dist/js/RichContentEditorNL.js?ts=120520200225"></script>-->
+    <!--<script src="../dist/js/RichContentEditor.js?ts=150820201534"></script>
+    <script src="../dist/js/RichContentEditorNL.js?ts=150820201534"></script>-->
 
     <script src="../src/js/RichContentUtils.js"></script>
     <script src="../src/js/RichContentBaseEditor.js"></script>
@@ -206,6 +212,7 @@ new RichContentEditor().Init('MyEditor', options);</pre>
     <script src="../src/js/RichContentIFrameEditor.js"></script>
     <script src="../src/js/RichContentFontAwesomeIconEditor.js"></script>
     <script src="../src/js/RichContentTableEditor.js"></script>
+    <script src="../src/js/RichContentBreakEditor.js"></script>
     <script src="../src/js/GridFrameworkBootstrap.js"></script>
     <script src="../src/js/GridFrameworkMaterialize.js"></script>
     <script src="../src/js/Locale/DialogManagerLocaleEN.js"></script>

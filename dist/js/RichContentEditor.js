@@ -86,8 +86,16 @@ var RichContentBaseEditor = /** @class */ (function () {
     RichContentBaseEditor.prototype.GetDetectionSelectors = function () {
         return '';
     };
-    RichContentBaseEditor.prototype.Import = function (_target, _source) {
+    RichContentBaseEditor.prototype.Import = function (_target, _source, touchedElements) {
         throw new Error("Method not implemented.");
+    };
+    RichContentBaseEditor.prototype.CopyCssClasses = function (source, target) {
+        for (var i = 0; i < this._registeredCssClasses.length; i++) {
+            var cssClass = this._registeredCssClasses[i];
+            if (source.hasClass(cssClass)) {
+                target.addClass(cssClass);
+            }
+        }
     };
     RichContentBaseEditor.prototype.GetMenuLabel = function () {
         throw new Error("GetMenuLabel() not implemented in " + this.constructor['name'] + "!");
@@ -95,8 +103,16 @@ var RichContentBaseEditor = /** @class */ (function () {
     RichContentBaseEditor.prototype.GetMenuIconClasses = function () {
         throw new Error("GetMenuIconClasses() not implemented in " + this.constructor['name'] + "!");
     };
+    RichContentBaseEditor.prototype.Clicked = function (elem) {
+    };
     RichContentBaseEditor.prototype.GetContextButtonText = function (_elem) {
         throw new Error("GetContextButtonText() not implemented in " + this.constructor['name'] + "!");
+    };
+    RichContentBaseEditor.prototype.UseWrapper = function () {
+        return true;
+    };
+    RichContentBaseEditor.prototype.GetEditorTypeName = function () {
+        return this.constructor['name'];
     };
     RichContentBaseEditor.prototype.GetContextCommands = function (_elem) {
         return null;
@@ -117,9 +133,13 @@ var RichContentBaseEditor = /** @class */ (function () {
         var _this = this;
         elems.each(function () {
             var elem = $(this);
-            elem.addClass('rce-editor-wrapper');
-            if (keepWhenCleaning)
-                elem.addClass('rce-editor-wrapper-keep');
+            if (_this.UseWrapper()) {
+                elem.addClass('rce-editor-wrapper');
+                if (keepWhenCleaning)
+                    elem.addClass('rce-editor-wrapper-keep');
+            }
+            elem.data('editorTypeName', _this.GetEditorTypeName());
+            elem.addClass('rce-element-editor');
             var menuButtonText = _this.GetContextButtonText(elem);
             var menuButton = $("<button type=\"button\" class=\"hover-button rce-menu-button\">" + menuButtonText + "\u25C0</button>");
             elem.prepend(menuButton);
@@ -131,6 +151,11 @@ var RichContentBaseEditor = /** @class */ (function () {
                 e.stopPropagation();
                 _this.showContextMenu(elem, new XYPosition(e.clientX + window.scrollX, e.clientY + window.scrollY));
             });
+            elem.click(function (e) {
+                if (!$(e.target).hasClass('rce-menu-button')) {
+                    _this.Clicked(elem);
+                }
+            });
             elem.focusin(function (e) {
                 // show toolbar when focusing, but only when its not an inline element (because that screws up the layout)
                 if (elem.closest('a').length === 0) {
@@ -140,9 +165,20 @@ var RichContentBaseEditor = /** @class */ (function () {
             });
         });
     };
+    RichContentBaseEditor.prototype.EliminateElementWrapper = function (elem) {
+        var _this = this;
+        var children = elem.children();
+        children.each(function () {
+            _this.RichContentEditorInstance.CleanElement($(this));
+        });
+        var detachedElements = elem.children().detach();
+        this.CopyCssClasses(elem, detachedElements);
+        elem.replaceWith(detachedElements);
+        _this.Clean(detachedElements);
+    };
     RichContentBaseEditor.prototype.showContextMenu = function (elem, buttonOrPosition) {
         var _this = this;
-        var actualElement = _this.getActualElement(elem);
+        var actualElement = _this.GetActualElement(elem);
         this.RichContentEditorInstance.CloseAllMenus();
         var menu = $('<div class="rce-menu"></ul>');
         var commands = this.GetContextCommands(elem);
@@ -195,7 +231,7 @@ var RichContentBaseEditor = /** @class */ (function () {
         menu.append(deleteItem);
         RichContentUtils.ShowMenu(menu, buttonOrPosition);
     };
-    RichContentBaseEditor.prototype.getActualElement = function (elem) {
+    RichContentBaseEditor.prototype.GetActualElement = function (elem) {
         return elem;
     };
     RichContentBaseEditor.prototype.RegisterCssClasses = function (classes) {
@@ -280,6 +316,7 @@ var RichContentEditorOptions = /** @class */ (function () {
         this.OnSave = null;
         this.OnClose = null;
         this.OnChange = null;
+        this.OnCopy = null;
     }
     return RichContentEditorOptions;
 }());
@@ -556,7 +593,8 @@ var RichContentEditor = /** @class */ (function () {
         }
         editorElement.find('.rce-editor-save').toggleClass('rce-hide', !options.ShowSaveButton);
         editorElement.find('.rce-editor-close').toggleClass('rce-hide', !options.ShowCloseButton);
-        this.ImportChildren(editorElement, $(gridSelector), false, false);
+        var touchedElements = [];
+        this.ImportChildren(editorElement, $(gridSelector), false, false, touchedElements);
         $(gridSelector).replaceWith(editorElement);
         var grid = $(gridSelector + ' .rce-grid');
         grid.bind('contextmenu', function (e) {
@@ -567,7 +605,7 @@ var RichContentEditor = /** @class */ (function () {
         });
         if (window.Sortable) {
             window.Sortable.create(grid[0], {
-                draggable: '.rce-editor-wrapper'
+                draggable: '.rce-element-editor'
             });
         }
         $(gridSelector + ' .rce-editor-save').click(function () {
@@ -606,9 +644,38 @@ var RichContentEditor = /** @class */ (function () {
             $(gridSelector + ' .rce-editor-preview-unlock').addClass('rce-hide');
             $(gridSelector).addClass('edit-mode');
         });
+        $(gridSelector + ' .rce-editor-copy').click(function () {
+            var _a;
+            var html = '<rce-clip>' + _this.GetHtml() + '</rce-clip>';
+            var type = 'text/plain';
+            var blob = new window.Blob([html], { type: type });
+            var data = [new window.ClipboardItem((_a = {}, _a["text/plain"] = blob, _a))];
+            navigator.clipboard.write(data).then(function () {
+                // Success!
+                if (_this.Options.OnCopy) {
+                    _this.Options.OnCopy();
+                }
+            }, function (err) {
+                alert(_this.Locale.CannotWriteToClipBoardMessage + "\n" + err);
+            });
+        });
         $(gridSelector + ' .add-button').click(function () {
             _this.CloseAllMenus();
             _this.showAddMenu($(this));
+        });
+        $(gridSelector + ' .paste-button').click(function () {
+            _this.CloseAllMenus();
+            window.navigator.clipboard.readText().then(function (html) {
+                $('.temp-container').remove();
+                $('body').append("<div class=\"temp-container hide\">" + html + "</div>");
+                var clip = $('.temp-container rce-clip');
+                if (clip.length == 0) {
+                    alert(_this.Locale.NoClipBoardDataMessage);
+                }
+                var touchedElements = [];
+                _this.ImportChildren(editorElement, clip, false, false, touchedElements);
+                _this.handleChanged();
+            });
         });
         $(document).click(function (e) {
             var target = $(e.target);
@@ -645,15 +712,25 @@ var RichContentEditor = /** @class */ (function () {
         }
         return result;
     };
-    RichContentEditor.prototype.ImportChildren = function (target, source, inTableCell, inLink) {
+    RichContentEditor.prototype.ImportChildren = function (target, source, inTableCell, inLink, touchedElements) {
         var _this = this;
         var elements = source.children();
         elements.each(function () {
-            for (var key in _this.RegisteredEditors) {
-                var editor = _this.RegisteredEditors[key];
-                if ((!inTableCell || editor.AllowInTableCell()) && (!inLink || editor.AllowInLink())) {
-                    editor.Import(target, $(this));
+            if (touchedElements.indexOf(this) === -1) {
+                for (var key in _this.RegisteredEditors) {
+                    var editor = _this.RegisteredEditors[key];
+                    if ((!inTableCell || editor.AllowInTableCell()) && (!inLink || editor.AllowInLink())) {
+                        var insertedElement = editor.Import(target, $(this), touchedElements);
+                        if (insertedElement != null) {
+                            insertedElement.data('editorTypeName', key);
+                            if (editor.UseWrapper()) {
+                                var actualElement = editor.GetActualElement(insertedElement);
+                                editor.CopyCssClasses(actualElement, insertedElement);
+                            }
+                        }
+                    }
                 }
+                touchedElements.push(this);
             }
         });
     };
@@ -666,9 +743,25 @@ var RichContentEditor = /** @class */ (function () {
      * Get the editor content as HTML.
      */
     RichContentEditor.prototype.GetHtml = function () {
-        var copy = $(this.GridSelector + ' .rce-grid').clone();
+        var copy = $(this.GridSelector + ' .rce-grid').clone(true, true);
         this.clean(copy);
         return copy.html();
+    };
+    /**
+     * Get the editor content as text.
+     */
+    RichContentEditor.prototype.GetText = function () {
+        var copy = $(this.GridSelector + ' .rce-grid').clone(true, true);
+        this.clean(copy);
+        return copy.text();
+    };
+    /**
+     * Get the editor content as well formed XML.
+     */
+    RichContentEditor.prototype.GetXml = function () {
+        var copy = $(this.GridSelector + ' .rce-grid').clone(true, true);
+        this.clean(copy);
+        return new XMLSerializer().serializeToString(copy[0]);
     };
     /**
      * Save the editor content as HTML.
@@ -690,34 +783,28 @@ var RichContentEditor = /** @class */ (function () {
     RichContentEditor.prototype.clean = function (elem) {
         var _this = this;
         elem.children().each(function () {
-            _this.cleanElement($(this));
+            _this.CleanElement($(this));
         });
     };
-    RichContentEditor.prototype.cleanElement = function (elem) {
+    RichContentEditor.prototype.CleanElement = function (elem) {
         var _this = this;
         if (elem.hasClass('rce-menu-button') || elem.hasClass('rce-toolbar')) {
             elem.remove();
         }
         else if (elem.hasClass('rce-editor-wrapper') && !elem.hasClass('rce-editor-wrapper-keep')) {
-            _this.EliminateElement(elem);
+            var editorTypeName = elem.data('editorTypeName');
+            var editor = this.GetEditorByTypeName(editorTypeName);
+            editor.EliminateElementWrapper(elem);
         }
         else {
             _this.clean(elem);
+            elem.removeClass('rce-editor-wrapper rce-element-editor rce-editor-wrapper-keep');
+            var editorTypeName = elem.data('editorTypeName');
+            if (editorTypeName) {
+                var editor = this.GetEditorByTypeName(editorTypeName);
+                editor.Clean(elem);
+            }
         }
-        elem.removeClass('rce-editor-wrapper rce-editor-wrapper-keep');
-        for (var key in this.RegisteredEditors) {
-            var editor = this.RegisteredEditors[key];
-            editor.Clean(elem);
-        }
-    };
-    RichContentEditor.prototype.EliminateElement = function (elem) {
-        var _this = this;
-        var children = elem.children();
-        children.each(function () {
-            _this.cleanElement($(this));
-        });
-        elem.children().detach().appendTo(elem.parent());
-        elem.remove();
     };
     RichContentEditor.prototype.instantiateEditors = function (editors) {
         var _this = this;
@@ -748,20 +835,33 @@ var RichContentEditor = /** @class */ (function () {
             this.Options.OnChange();
         }
     };
-    RichContentEditor.prototype.InsertEditor = function (editorTypeName, element) {
-        var editor = null;
+    //public InsertEditor(editorTypeName: string, element: JQuery<HTMLElement>)
+    //{
+    //    let editor: RichContentBaseEditor = this.GetEditorByTypeName(editorTypeName);
+    //    if (editor === null)
+    //    {
+    //        console.error(`Editor with name ${editorTypeName} not registered!`);
+    //    }
+    //    else
+    //    {
+    //        editor.Insert(element);
+    //    }
+    //    let editorElement = element;
+    //    if (editor.UseWrapper())
+    //    {
+    //        editorElement = element.closest('.rce-editor-wrapper');
+    //    }
+    //    editorElement.data('editorTypeName', editorTypeName);
+    //}
+    RichContentEditor.prototype.GetEditorByTypeName = function (editorTypeName) {
+        var result = null;
         for (var key in this.RegisteredEditors) {
             var registeredEditor = this.RegisteredEditors[key];
             if (registeredEditor.Name === editorTypeName) {
-                editor = registeredEditor;
+                result = registeredEditor;
             }
         }
-        if (editor === null) {
-            console.error("Editor with name " + editorTypeName + " not registered!");
-        }
-        else {
-            editor.Insert(element);
-        }
+        return result;
     };
     RichContentEditor.prototype.CloseAllMenus = function () {
         $('.rce-menu').remove();
@@ -881,7 +981,7 @@ var HtmlTemplates = /** @class */ (function () {
     function HtmlTemplates() {
     }
     HtmlTemplates.GetMainEditorTemplate = function (id) {
-        return "\n            <div id=\"" + id + "\" class=\"rce-grid-wrapper edit-mode\">\n                <div class=\"rce-grid\">\n                    <a class=\"rce-button rce-button-flat rce-menu-button add-button\"><i class=\"fas fa-plus-circle\"></i></a>\n                </div>\n\n                <div class=\"rce-editor-top-icons\">\n                    <button type=\"button\" class=\"rce-button rce-button-toolbar rce-editor-preview-lock\"><i class=\"fas fa-eye\"></i></button>\n                    <button type=\"button\" class=\"rce-button rce-button-toolbar rce-editor-preview-unlock rce-hide\"><i class=\"fas fa-eye-slash\"></i></button>\n                    <button type=\"button\" class=\"rce-button rce-button-toolbar rce-editor-save rce-hide\"><i class=\"fas fa-save\"></i></button>\n                    <a href=\"javascript:\" class=\"rce-button rce-button-toolbar rce-editor-close rce-hide\"><i class=\"fas fa-times\"></i></a>\n                </div>\n            </div>";
+        return "\n            <div id=\"" + id + "\" class=\"rce-grid-wrapper edit-mode\">\n                <div class=\"rce-grid\">\n                    <a class=\"rce-button rce-button-flat rce-menu-button add-button\"><i class=\"fas fa-plus-circle\"></i></a>\n                    <a class=\"rce-button rce-button-flat rce-menu-button paste-button\"><i class=\"fas fa-paste\"></i></a>\n                </div>\n\n                <div class=\"rce-editor-top-icons\">\n                    <button type=\"button\" class=\"rce-button rce-button-toolbar rce-editor-preview-lock\"><i class=\"fas fa-eye\"></i></button>\n                    <button type=\"button\" class=\"rce-button rce-button-toolbar rce-editor-preview-unlock rce-hide\"><i class=\"fas fa-eye-slash\"></i></button>\n                    <button type=\"button\" class=\"rce-button rce-button-toolbar rce-editor-copy\"><i class=\"fas fa-copy\"></i></button>\n                    <button type=\"button\" class=\"rce-button rce-button-toolbar rce-editor-save rce-hide\"><i class=\"fas fa-save\"></i></button>\n                    <a href=\"javascript:\" class=\"rce-button rce-button-toolbar rce-editor-close rce-hide\"><i class=\"fas fa-times\"></i></a>\n                </div>\n            </div>";
     };
     return HtmlTemplates;
 }());
@@ -903,6 +1003,7 @@ var RichContentTextEditor = /** @class */ (function (_super) {
     __extends(RichContentTextEditor, _super);
     function RichContentTextEditor() {
         var _this_1 = _super !== null && _super.apply(this, arguments) || this;
+        _this_1._customTags = [];
         _this_1._selectionChangedBound = false;
         return _this_1;
     }
@@ -935,7 +1036,16 @@ var RichContentTextEditor = /** @class */ (function (_super) {
         textAreaWrapper.find('.rce-textarea-editor').focus();
         this.setupEvents(textArea);
     };
-    RichContentTextEditor.prototype.getActualElement = function (elem) {
+    RichContentTextEditor.prototype.RegisterCustomTag = function (name, icon, html, onInsert) {
+        var customTag = {
+            Name: name,
+            Icon: icon,
+            Html: html,
+            OnInsert: onInsert
+        };
+        this._customTags.push(customTag);
+    };
+    RichContentTextEditor.prototype.GetActualElement = function (elem) {
         if (elem.hasClass('rce-textarea-wrapper')) {
             return elem.find('.rce-textarea-editor');
         }
@@ -975,7 +1085,7 @@ var RichContentTextEditor = /** @class */ (function (_super) {
     RichContentTextEditor.prototype.GetDetectionSelectors = function () {
         return '.text';
     };
-    RichContentTextEditor.prototype.Import = function (targetElement, source) {
+    RichContentTextEditor.prototype.Import = function (targetElement, source, touchedElements) {
         if (source.hasClass('text')) {
             var clone = source.clone();
             var inline = targetElement.is('a');
@@ -994,7 +1104,9 @@ var RichContentTextEditor = /** @class */ (function (_super) {
             source.replaceWith(textAreaWrapper.append(clone));
             this.Attach(textAreaWrapper, targetElement);
             this.setupEvents(textArea);
+            return textAreaWrapper;
         }
+        return null;
     };
     RichContentTextEditor.prototype.GetMenuLabel = function () {
         return this._locale.MenuLabel;
@@ -1009,14 +1121,15 @@ var RichContentTextEditor = /** @class */ (function (_super) {
         return true;
     };
     RichContentTextEditor.prototype.Clean = function (elem) {
-        if (elem.hasClass('rce-textarea-editor')) {
-            elem.removeClass('rce-textarea-editor');
-            if (elem.attr('class') === '')
-                elem.removeAttr('class');
-            elem.removeAttr('contenteditable');
-            elem.addClass('text');
-        }
+        elem.removeClass('rce-textarea-editor');
+        if (elem.attr('class') === '')
+            elem.removeAttr('class');
+        elem.removeAttr('contenteditable');
+        elem.addClass('text');
         _super.prototype.Clean.call(this, elem);
+    };
+    RichContentTextEditor.prototype.Clicked = function (elem) {
+        this.GetActualElement(elem)[0].focus();
     };
     RichContentTextEditor.prototype.GetContextButtonText = function (_elem) {
         return 'A';
@@ -1099,7 +1212,42 @@ var RichContentTextEditor = /** @class */ (function (_super) {
                 return true;
             });
         });
-        return [boldCommand, italicCommand, ulCommand, olCommand, linkCommand];
+        var commands = [boldCommand, italicCommand, ulCommand, olCommand, linkCommand];
+        var _loop_1 = function () {
+            var customTag = this_1._customTags[i];
+            var command = new ContextCommand(customTag.Name, 'fas fa-' + customTag.Icon, function (elem) {
+                elem.find('.rce-textarea-editor').focus();
+                var htmlToInsert = "<span class=\"temp-inserted-tag\">" + customTag.Html + "</span>";
+                _this.insertHTML(htmlToInsert);
+                //document.execCommand('insertHTML', false, htmlToInsert);
+                var tempTag = elem.find('.temp-inserted-tag');
+                var contents = tempTag.contents();
+                tempTag.replaceWith(contents);
+                if (customTag.OnInsert) {
+                    customTag.OnInsert(_this.RichContentEditorInstance, contents);
+                }
+            });
+            commands.push(command);
+        };
+        var this_1 = this;
+        for (var i = 0; i < this._customTags.length; i++) {
+            _loop_1();
+        }
+        return commands;
+    };
+    RichContentTextEditor.prototype.insertHTML = function (html) {
+        var sel, range;
+        if (window.getSelection && (sel = window.getSelection()).rangeCount) {
+            range = sel.getRangeAt(0);
+            range.collapse(true);
+            var elem = $(html);
+            range.insertNode(elem[0]);
+            // Move the caret immediately after the inserted span
+            range.setStartAfter(elem[0]);
+            range.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(range);
+        }
     };
     RichContentTextEditor.prototype.GetToolbarCommands = function (elem) {
         return this.GetContextCommands(elem);
@@ -1184,10 +1332,13 @@ var RichContentHeadingEditor = /** @class */ (function (_super) {
         }
     };
     RichContentHeadingEditor.prototype.GetDetectionSelectors = function () {
-        return 'h1,h2,h3,h4,h5,h6';
+        return '*:header';
     };
-    RichContentHeadingEditor.prototype.Import = function (targetElement, source) {
-        if (source.is('h1,h2,h3,h4,h5,h6')) {
+    RichContentHeadingEditor.prototype.GetActualElement = function (elem) {
+        return elem.find('*:header');
+    };
+    RichContentHeadingEditor.prototype.Import = function (targetElement, source, touchedElements) {
+        if (source.is(':header')) {
             var clone = source.clone();
             clone.attr('contenteditable', 'true');
             clone.addClass('rce-heading-editor');
@@ -1196,7 +1347,9 @@ var RichContentHeadingEditor = /** @class */ (function (_super) {
             source.replaceWith(headingWrapper.append(clone));
             this.Attach(headingWrapper, targetElement);
             this.setupEvents(clone);
+            return headingWrapper;
         }
+        return null;
     };
     RichContentHeadingEditor.prototype.GetMenuLabel = function () {
         return this._locale.MenuLabel;
@@ -1272,13 +1425,6 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var ImageAlignment;
-(function (ImageAlignment) {
-    ImageAlignment[ImageAlignment["None"] = 0] = "None";
-    ImageAlignment[ImageAlignment["Fill"] = 1] = "Fill";
-    ImageAlignment[ImageAlignment["Left"] = 2] = "Left";
-    ImageAlignment[ImageAlignment["Right"] = 3] = "Right";
-})(ImageAlignment || (ImageAlignment = {}));
 var ColumnAlignment;
 (function (ColumnAlignment) {
     ColumnAlignment[ColumnAlignment["Left"] = 0] = "Left";
@@ -1310,93 +1456,56 @@ var RichContentImageEditor = /** @class */ (function (_super) {
         var _this = this;
         var url = null;
         var update = elem !== null;
-        var alignment = ImageAlignment.Fill;
         if (elem) {
             url = $('.rce-image', elem).attr('src');
-            alignment = this.getImageAlignment(elem);
         }
         this.RichContentEditorInstance.FileManager.ShowFileSelectionDialog(url, false, false, true, function (url, _lightBox, _targetBlank) {
             _this.OnChange();
             if (update) {
-                _this_1.updateImage(elem, url, alignment);
+                _this_1.updateImage(elem, url);
             }
             else {
-                _this_1.InsertImage(url, alignment, _this_1._appendElement);
+                _this_1.InsertImage(url, _this_1._appendElement);
             }
             return true;
         });
     };
-    RichContentImageEditor.prototype.InsertImage = function (url, alignment, targetElement) {
+    RichContentImageEditor.prototype.InsertImage = function (url, targetElement) {
         var imgWrapper = $('<div class="rce-image-wrapper"></div>');
         var img = $('<img class="rce-image"></img>');
         imgWrapper.append(img);
-        this.updateImage(imgWrapper, url, alignment);
+        this.updateImage(imgWrapper, url);
         if (!targetElement) {
             targetElement = $("#" + this.RichContentEditorInstance.EditorId + " .rce-grid");
         }
         this.Attach(imgWrapper, targetElement);
     };
-    RichContentImageEditor.prototype.updateImage = function (elem, url, alignment) {
+    RichContentImageEditor.prototype.updateImage = function (elem, url) {
         var img = elem.find('.rce-image');
         img.attr('src', url);
         var childToAppend = null;
-        this.removeEditorAlignmentClasses(elem);
-        elem.addClass(this.getImageAlignmentClass(alignment));
         if (childToAppend) {
             elem.append(childToAppend);
         }
     };
-    RichContentImageEditor.prototype.getImageAlignmentClass = function (alignment) {
-        switch (alignment) {
-            case ImageAlignment.Left: return 'rce-image-left';
-            case ImageAlignment.Right: return 'rce-image-right';
-            case ImageAlignment.Fill: return 'rce-image-block';
-            case ImageAlignment.None: return '';
-            default: throw "Unexpected alignment value: " + alignment;
-        }
-    };
-    RichContentImageEditor.prototype.getImageAlignment = function (elem) {
-        if (elem.hasClass('rce-image-left'))
-            return ImageAlignment.Left;
-        if (elem.hasClass('rce-image-block'))
-            return ImageAlignment.Fill;
-        if (elem.hasClass('rce-image-right'))
-            return ImageAlignment.Right;
-        return ImageAlignment.None;
-    };
     RichContentImageEditor.prototype.GetDetectionSelectors = function () {
         return 'img';
     };
-    RichContentImageEditor.prototype.Import = function (targetElement, source) {
-        if (source.is('img') || source.is('a') && source.children().first().is('img')) {
+    RichContentImageEditor.prototype.GetActualElement = function (elem) {
+        return elem.find('img');
+    };
+    RichContentImageEditor.prototype.Import = function (targetElement, source, touchedElements) {
+        if (source.is('img')) {
             var clone = source.clone();
             var imgWrapper = $('<div class="rce-image-wrapper"></div>');
             imgWrapper.append(clone);
             var img = imgWrapper.find('img');
             img.addClass('rce-image');
-            var alignment = ImageAlignment.None;
-            if (img.hasClass(this.RichContentEditorInstance.GridFramework.GetLeftAlignClass())) {
-                alignment = ImageAlignment.Left;
-                img.removeClass(this.RichContentEditorInstance.GridFramework.GetLeftAlignClass());
-            }
-            else if (img.hasClass(this.RichContentEditorInstance.GridFramework.GetRightAlignClass())) {
-                alignment = ImageAlignment.Right;
-                img.removeClass(this.RichContentEditorInstance.GridFramework.GetRightAlignClass());
-            }
-            else if (img.hasClass(this.RichContentEditorInstance.GridFramework.GetBlockAlignClass())) {
-                alignment = ImageAlignment.Fill;
-                img.removeClass(this.RichContentEditorInstance.GridFramework.GetBlockAlignClass());
-            }
-            else if (this.hasCss(img, this.RichContentEditorInstance.GridFramework.GetBlockAlignCss())) {
-                alignment = ImageAlignment.Fill;
-                img.css(this.RichContentEditorInstance.GridFramework.GetBlockAlignCss().Key, '');
-            }
-            if (alignment !== ImageAlignment.None) {
-                imgWrapper.addClass(this.getImageAlignmentClass(alignment));
-            }
             source.replaceWith(imgWrapper);
             this.Attach(imgWrapper, targetElement);
+            return imgWrapper;
         }
+        return null;
     };
     RichContentImageEditor.prototype.hasCss = function (elem, css) {
         if (css === null) {
@@ -1419,62 +1528,21 @@ var RichContentImageEditor = /** @class */ (function (_super) {
         return true;
     };
     RichContentImageEditor.prototype.Clean = function (elem) {
-        var wrapper = elem.closest('.rce-image-wrapper');
-        if (wrapper.hasClass('rce-image-left')) {
-            elem.addClass(this.RichContentEditorInstance.GridFramework.GetLeftAlignClass());
-            var css = this.RichContentEditorInstance.GridFramework.GetLeftAlignCss();
-            if (css != null)
-                elem.css(css.Key, css.Value);
-        }
-        if (wrapper.hasClass('rce-image-right')) {
-            elem.addClass(this.RichContentEditorInstance.GridFramework.GetRightAlignClass());
-            var css = this.RichContentEditorInstance.GridFramework.GetRightAlignCss();
-            if (css != null)
-                elem.css(css.Key, css.Value);
-        }
-        if (wrapper.hasClass('rce-image-block')) {
-            elem.addClass(this.RichContentEditorInstance.GridFramework.GetBlockAlignClass());
-            var css = this.RichContentEditorInstance.GridFramework.GetBlockAlignCss();
-            if (css != null)
-                elem.css(css.Key, css.Value);
-        }
+        _super.prototype.Clean.call(this, elem);
         elem.removeClass('rce-image');
         if (elem.attr('class') === '')
             elem.removeAttr('class');
         elem.removeAttr('draggable');
-        _super.prototype.Clean.call(this, elem);
     };
     RichContentImageEditor.prototype.GetContextButtonText = function (_elem) {
         return 'img';
     };
     RichContentImageEditor.prototype.GetContextCommands = function (_elem) {
         var _this = this;
-        var leftCommand = new ContextCommand(this._locale.AlignLeftMenuLabel, 'fas fa-arrow-left', function (elem) {
-            _this.removeEditorAlignmentClasses(elem);
-            elem.addClass('rce-image-left');
-            _this.OnChange();
-        });
-        var rightCommand = new ContextCommand(this._locale.AlignRightMenuLabel, 'fas fa-arrow-right', function (elem) {
-            _this.removeEditorAlignmentClasses(elem);
-            elem.addClass('rce-image-right');
-            _this.OnChange();
-        });
-        var blockCommand = new ContextCommand(this._locale.BlockAlignMenuLabel, 'fas fa-expand-arrows-alt', function (elem) {
-            _this.removeEditorAlignmentClasses(elem);
-            elem.addClass('rce-image-block');
-            _this.OnChange();
-        });
-        var defaultCommand = new ContextCommand(this._locale.DefaultSizeMenuLabel, 'fas fa-compress-arrows-alt', function (elem) {
-            _this.removeEditorAlignmentClasses(elem);
-            _this.OnChange();
-        });
         var editCommand = new ContextCommand(this._locale.EditMenuLabel, 'fas fa-cog', function (elem) {
             _this.showSelectionDialog(elem);
         });
-        return [leftCommand, rightCommand, blockCommand, defaultCommand, editCommand];
-    };
-    RichContentImageEditor.prototype.removeEditorAlignmentClasses = function (elem) {
-        elem.removeClass('rce-image-left rce-image-block rce-image-right');
+        return [editCommand];
     };
     RichContentImageEditor._localeRegistrations = {};
     return RichContentImageEditor;
@@ -1574,7 +1642,10 @@ var RichContentVideoEditor = /** @class */ (function (_super) {
     RichContentVideoEditor.prototype.GetDetectionSelectors = function () {
         return 'div.video';
     };
-    RichContentVideoEditor.prototype.Import = function (targetElement, source) {
+    RichContentVideoEditor.prototype.GetActualElement = function (elem) {
+        return elem.find('div.video');
+    };
+    RichContentVideoEditor.prototype.Import = function (targetElement, source, touchedElements) {
         if (source.is('div.video')) {
             var clone = source.clone();
             clone.addClass('rce-video');
@@ -1582,7 +1653,9 @@ var RichContentVideoEditor = /** @class */ (function (_super) {
             wrapper.append(clone);
             source.replaceWith(wrapper);
             this.Attach(wrapper, targetElement);
+            return wrapper;
         }
+        return null;
     };
     RichContentVideoEditor.prototype.GetMenuLabel = function () {
         return this._locale.MenuLabel;
@@ -1715,7 +1788,10 @@ var RichContentIFrameEditor = /** @class */ (function (_super) {
     RichContentIFrameEditor.prototype.GetDetectionSelectors = function () {
         return 'iframe';
     };
-    RichContentIFrameEditor.prototype.Import = function (targetElement, source) {
+    RichContentIFrameEditor.prototype.GetActualElement = function (elem) {
+        return elem.find('iframe');
+    };
+    RichContentIFrameEditor.prototype.Import = function (targetElement, source, touchedElements) {
         if (source.is('iframe')) {
             var clone = source.clone();
             clone.addClass('rce-iframe');
@@ -1723,7 +1799,9 @@ var RichContentIFrameEditor = /** @class */ (function (_super) {
             wrapper.append(clone);
             source.replaceWith(wrapper);
             this.Attach(wrapper, targetElement);
+            return wrapper;
         }
+        return null;
     };
     RichContentIFrameEditor.prototype.GetMenuLabel = function () {
         return this._locale.MenuLabel;
@@ -1772,13 +1850,6 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var LinkAlignment;
-(function (LinkAlignment) {
-    LinkAlignment[LinkAlignment["None"] = 0] = "None";
-    LinkAlignment[LinkAlignment["Fill"] = 1] = "Fill";
-    LinkAlignment[LinkAlignment["Left"] = 2] = "Left";
-    LinkAlignment[LinkAlignment["Right"] = 3] = "Right";
-})(LinkAlignment || (LinkAlignment = {}));
 var RichContentLinkEditor = /** @class */ (function (_super) {
     __extends(RichContentLinkEditor, _super);
     function RichContentLinkEditor() {
@@ -1807,9 +1878,9 @@ var RichContentLinkEditor = /** @class */ (function (_super) {
         var targetBlank = false;
         var update = elem !== null;
         if (elem) {
-            url = $('.rce-link', elem).attr(lightBox ? 'data-featherlight' : 'href');
-            lightBox = $('a[data-featherlight]', elem).length > 0;
-            targetBlank = $('a[target="_blank"]', elem).length > 0;
+            url = elem.attr(lightBox ? 'data-featherlight' : 'href');
+            lightBox = elem.is('[data-featherlight]');
+            targetBlank = elem.is('[target="_blank"]');
         }
         this.RichContentEditorInstance.FileManager.ShowFileSelectionDialog(url, lightBox, targetBlank, false, function (url, lightBox, targetBlank) {
             _this.OnChange();
@@ -1817,24 +1888,20 @@ var RichContentLinkEditor = /** @class */ (function (_super) {
                 _this_1.updateLink(elem, url, lightBox, targetBlank);
             }
             else {
-                _this_1.InsertLink(url, lightBox, targetBlank, LinkAlignment.None, _this_1._appendElement);
+                _this_1.InsertLink(url, lightBox, targetBlank, _this_1._appendElement);
             }
             return true;
         });
     };
-    RichContentLinkEditor.prototype.InsertLink = function (url, lightBox, targetBlank, alignment, targetElement) {
-        var linkWrapper = $('<div class="rce-link-wrapper"></div>');
-        var link = $('<a class="rce-link" onclick="return false;"></a>');
-        linkWrapper.append(link);
-        this.updateLink(linkWrapper, url, lightBox, targetBlank);
-        linkWrapper.addClass(this.getAlignmentClass(alignment));
+    RichContentLinkEditor.prototype.InsertLink = function (url, lightBox, targetBlank, targetElement) {
+        var link = $('<a class="rce-link rce-element-editor" onclick="return false;"></a>');
+        this.updateLink(link, url, lightBox, targetBlank);
         if (!targetElement) {
             targetElement = $("#" + this.RichContentEditorInstance.EditorId + " .rce-grid");
         }
-        this.Attach(linkWrapper, targetElement);
+        this.Attach(link, targetElement);
     };
-    RichContentLinkEditor.prototype.updateLink = function (elem, url, lightBox, targetBlank) {
-        var link = elem.find('.rce-link');
+    RichContentLinkEditor.prototype.updateLink = function (link, url, lightBox, targetBlank) {
         if (lightBox && RichContentUtils.HasFeatherLight()) {
             if (RichContentUtils.IsVideoUrl(url)) {
                 var mimeType = RichContentUtils.GetMimeType(url);
@@ -1855,76 +1922,28 @@ var RichContentLinkEditor = /** @class */ (function (_super) {
         else {
             link.removeAttr('target');
         }
-        this.removeEditorAlignmentClasses(elem);
-    };
-    RichContentLinkEditor.prototype.getAlignmentClass = function (alignment) {
-        switch (alignment) {
-            case LinkAlignment.Left: return 'rce-left';
-            case LinkAlignment.Right: return 'rce-right';
-            case LinkAlignment.Fill: return 'rce-fill';
-            case LinkAlignment.None: return '';
-            default: throw "Unexpected alignment value: " + alignment;
-        }
-    };
-    RichContentLinkEditor.prototype.getAlignment = function (elem) {
-        if (elem.hasClass('rce-left'))
-            return LinkAlignment.Left;
-        if (elem.hasClass('rce-fill'))
-            return LinkAlignment.Fill;
-        if (elem.hasClass('rce-right'))
-            return LinkAlignment.Right;
-        return LinkAlignment.None;
     };
     RichContentLinkEditor.prototype.GetDetectionSelectors = function () {
         return 'a';
     };
-    RichContentLinkEditor.prototype.getActualElement = function (elem) {
-        if (elem.is('.rce-link-wrapper')) {
-            return elem.find('a.rce-link');
-        }
-        return elem;
-    };
-    RichContentLinkEditor.prototype.Import = function (targetElement, source) {
+    RichContentLinkEditor.prototype.Import = function (targetElement, source, touchedElements) {
         if (source.is('a')) {
             var clone = source.clone();
             clone.empty();
-            var linkWrapper = $('<div class="rce-link-wrapper"></div>');
-            linkWrapper.append(clone);
-            var link = linkWrapper.find('a');
-            link.addClass('rce-link');
-            link.attr('onclick', 'return false;');
-            this.RichContentEditorInstance.ImportChildren(link, source, false, true);
-            var alignment = LinkAlignment.None;
-            if (link.hasClass(this.RichContentEditorInstance.GridFramework.GetLeftAlignClass())) {
-                alignment = LinkAlignment.Left;
-                link.removeClass(this.RichContentEditorInstance.GridFramework.GetLeftAlignClass());
+            clone.addClass('rce-link');
+            clone.attr('onclick', 'return false;');
+            this.RichContentEditorInstance.ImportChildren(clone, source, false, true, touchedElements);
+            source.replaceWith(clone);
+            this.Attach(clone, targetElement);
+            if (window.Sortable) {
+                window.Sortable.create(clone[0], {
+                    group: 'link-content',
+                    draggable: '> .rce-element-editor'
+                });
             }
-            else if (link.hasClass(this.RichContentEditorInstance.GridFramework.GetRightAlignClass())) {
-                alignment = LinkAlignment.Right;
-                link.removeClass(this.RichContentEditorInstance.GridFramework.GetRightAlignClass());
-            }
-            else if (link.hasClass(this.RichContentEditorInstance.GridFramework.GetBlockAlignClass())) {
-                alignment = LinkAlignment.Fill;
-                link.removeClass(this.RichContentEditorInstance.GridFramework.GetBlockAlignClass());
-            }
-            else if (this.hasCss(link, this.RichContentEditorInstance.GridFramework.GetBlockAlignCss())) {
-                alignment = LinkAlignment.Fill;
-                link.css(this.RichContentEditorInstance.GridFramework.GetBlockAlignCss().Key, '');
-            }
-            if (alignment !== LinkAlignment.None) {
-                linkWrapper.addClass(this.getAlignmentClass(alignment));
-            }
-            source.replaceWith(linkWrapper);
-            this.Attach(linkWrapper, targetElement);
+            return clone;
         }
-    };
-    RichContentLinkEditor.prototype.hasCss = function (elem, css) {
-        if (css === null) {
-            return false;
-        }
-        if (elem.css(css.Key) === css.Value)
-            return true;
-        return false;
+        return null;
     };
     RichContentLinkEditor.prototype.GetMenuLabel = function () {
         return this._locale.MenuLabel;
@@ -1936,34 +1955,22 @@ var RichContentLinkEditor = /** @class */ (function (_super) {
         return true;
     };
     RichContentLinkEditor.prototype.Clean = function (elem) {
+        var _this = this;
         elem.removeAttr('onclick');
-        var wrapper = elem.closest('.rce-link-wrapper');
-        if (wrapper.hasClass('rce-left')) {
-            elem.addClass(this.RichContentEditorInstance.GridFramework.GetLeftAlignClass());
-            var css = this.RichContentEditorInstance.GridFramework.GetLeftAlignCss();
-            if (css != null)
-                elem.css(css.Key, css.Value);
-        }
-        if (wrapper.hasClass('rce-right')) {
-            elem.addClass(this.RichContentEditorInstance.GridFramework.GetRightAlignClass());
-            var css = this.RichContentEditorInstance.GridFramework.GetRightAlignCss();
-            if (css != null)
-                elem.css(css.Key, css.Value);
-        }
-        if (wrapper.hasClass('rce-fill')) {
-            elem.addClass(this.RichContentEditorInstance.GridFramework.GetBlockAlignClass());
-            var css = this.RichContentEditorInstance.GridFramework.GetBlockAlignCss();
-            if (css != null)
-                elem.css(css.Key, css.Value);
-        }
         elem.removeClass('rce-link');
         if (elem.attr('class') === '')
             elem.removeAttr('class');
         elem.removeAttr('draggable');
+        elem.children().each(function () {
+            _this.Clean($(this));
+        });
         _super.prototype.Clean.call(this, elem);
     };
     RichContentLinkEditor.prototype.GetContextButtonText = function (_elem) {
         return 'lnk';
+    };
+    RichContentLinkEditor.prototype.UseWrapper = function () {
+        return false;
     };
     RichContentLinkEditor.prototype.GetContextCommands = function (_elem) {
         var _this = this;
@@ -1973,13 +1980,12 @@ var RichContentLinkEditor = /** @class */ (function (_super) {
             var editor = editors[key];
             if (editor.AllowInLink()) {
                 insertCommand = new ContextCommand(editor.GetMenuLabel(), editor.GetMenuIconClasses(), function (elem) {
-                    var inner = elem.find('a.rce-link');
-                    editor.Insert(inner);
+                    editor.Insert(elem);
                     _this.OnChange();
                     if (window.Sortable) {
-                        window.Sortable.create(inner[0], {
-                            group: 'col',
-                            draggable: '.rce-editor-wrapper'
+                        window.Sortable.create(elem[0], {
+                            group: 'link-content',
+                            draggable: '> .rce-element-editor'
                         });
                     }
                 });
@@ -1995,9 +2001,6 @@ var RichContentLinkEditor = /** @class */ (function (_super) {
         });
         result.push(editCommand);
         return result;
-    };
-    RichContentLinkEditor.prototype.removeEditorAlignmentClasses = function (elem) {
-        elem.removeClass('rce-left rce-fill rce-right');
     };
     RichContentLinkEditor._localeRegistrations = {};
     return RichContentLinkEditor;
@@ -2135,7 +2138,10 @@ var RichContentFontAwesomeIconEditor = /** @class */ (function (_super) {
     RichContentFontAwesomeIconEditor.prototype.GetDetectionSelectors = function () {
         return '.fas';
     };
-    RichContentFontAwesomeIconEditor.prototype.Import = function (targetElement, source) {
+    RichContentFontAwesomeIconEditor.prototype.GetActualElement = function (elem) {
+        return elem.find('i.fas');
+    };
+    RichContentFontAwesomeIconEditor.prototype.Import = function (targetElement, source, touchedElements) {
         if (source.is('i.fas')) {
             var clone = source.clone();
             var inline = targetElement.is('a');
@@ -2157,7 +2163,9 @@ var RichContentFontAwesomeIconEditor = /** @class */ (function (_super) {
             }
             source.replaceWith(imgWrapper);
             this.Attach(imgWrapper, targetElement);
+            return imgWrapper;
         }
+        return null;
     };
     RichContentFontAwesomeIconEditor.prototype.GetMenuLabel = function () {
         return this._locale.MenuLabel;
@@ -2278,17 +2286,21 @@ var RichContentTableEditor = /** @class */ (function (_super) {
         this.Attach(tableWrapper, targetElement);
     };
     RichContentTableEditor.prototype.Clean = function (elem) {
+        var _this = this;
         if (elem.hasClass('col')) {
             var alignment = this.getTableColumnAlignment(elem);
             this.setFrameworkColumnAlignment(elem, alignment);
             this.cleanEditorColumnAlignment(elem);
         }
         if (elem.hasClass('inner') && elem.parent().hasClass('col')) {
-            this.RichContentEditorInstance.EliminateElement(elem);
+            this.EliminateElementWrapper(elem);
         }
         if (elem.hasClass('rce-table')) {
             elem.removeClass('rce-table').addClass('table');
         }
+        elem.children().each(function () {
+            _this.Clean($(this));
+        });
         _super.prototype.Clean.call(this, elem);
     };
     RichContentTableEditor.prototype.AllowInTableCell = function () {
@@ -2306,11 +2318,11 @@ var RichContentTableEditor = /** @class */ (function (_super) {
         if (window.Sortable) {
             window.Sortable.create(row[0], {
                 group: 'row-content',
-                draggable: '.rce-editor-wrapper'
+                draggable: '> .rce-element-editor'
             });
             window.Sortable.create(row.closest('.rce-table')[0], {
                 group: 'table-content',
-                draggable: '.rce-editor-wrapper'
+                draggable: '> .rce-element-editor'
             });
         }
     };
@@ -2339,7 +2351,7 @@ var RichContentTableEditor = /** @class */ (function (_super) {
         if (window.Sortable) {
             window.Sortable.create(col.find('.inner')[0], {
                 group: 'column-content',
-                draggable: '.rce-editor-wrapper'
+                draggable: '> .rce-element-editor'
             });
         }
     };
@@ -2368,7 +2380,7 @@ var RichContentTableEditor = /** @class */ (function (_super) {
     RichContentTableEditor.prototype.GetDetectionSelectors = function () {
         return '.table,.row,.col';
     };
-    RichContentTableEditor.prototype.Import = function (targetElement, source) {
+    RichContentTableEditor.prototype.Import = function (targetElement, source, touchedElements) {
         var _this = this;
         if (source.is('.table')) {
             var table = $('<div class="rce-table"></div>').addClass(source.attr('class')).removeClass('table');
@@ -2382,7 +2394,7 @@ var RichContentTableEditor = /** @class */ (function (_super) {
             });
             cols.each(function () {
                 var inner = $('<div class="inner"></div>');
-                _this.RichContentEditorInstance.ImportChildren(inner, $(this), true, false);
+                _this.RichContentEditorInstance.ImportChildren(inner, $(this), true, false, touchedElements);
                 var alignment = _this.getFrameworkTableColumnAlignment($(this));
                 _this.setEditorColumnAlignment($(this), alignment);
                 $(this).empty();
@@ -2395,7 +2407,9 @@ var RichContentTableEditor = /** @class */ (function (_super) {
             tableWrapper.append(table);
             source.replaceWith(tableWrapper);
             this.Attach(tableWrapper, targetElement);
+            return tableWrapper;
         }
+        return null;
     };
     RichContentTableEditor.prototype.GetMenuLabel = function () {
         return this._locale.MenuLabel;
@@ -2438,7 +2452,7 @@ var RichContentTableEditor = /** @class */ (function (_super) {
                     if (window.Sortable) {
                         window.Sortable.create(inner[0], {
                             group: 'col',
-                            draggable: '.rce-editor-wrapper'
+                            draggable: '> .rce-element-editor'
                         });
                     }
                 });
@@ -2551,7 +2565,7 @@ var RichContentTableEditor = /** @class */ (function (_super) {
             if (window.Sortable) {
                 window.Sortable.create(elem[0], {
                     group: 'row-content',
-                    draggable: '.rce-editor-wrapper'
+                    draggable: '> .rce-element-editor'
                 });
             }
         });
@@ -2568,7 +2582,7 @@ var RichContentTableEditor = /** @class */ (function (_super) {
         result.push(insertRowCommand);
         return result;
     };
-    RichContentTableEditor.prototype.getActualElement = function (elem) {
+    RichContentTableEditor.prototype.GetActualElement = function (elem) {
         if (elem.hasClass('rce-table-wrapper')) {
             return elem.find(' > .rce-table');
         }
@@ -2591,6 +2605,84 @@ var RichContentTableEditor = /** @class */ (function (_super) {
 }(RichContentBaseEditor));
 RichContentBaseEditor.RegisterEditor('RichContentTableEditor', RichContentTableEditor);
 //# sourceMappingURL=RichContentTableEditor.js.map 
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+var RichContentBreakEditor = /** @class */ (function (_super) {
+    __extends(RichContentBreakEditor, _super);
+    function RichContentBreakEditor() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    RichContentBreakEditor.prototype.Init = function (richContentEditor) {
+        _super.prototype.Init.call(this, richContentEditor);
+    };
+    RichContentBreakEditor.prototype.Insert = function (targetElement) {
+        _super.prototype.Insert.call(this, targetElement);
+        if (!targetElement) {
+            targetElement = $('.rce-grid', this.RichContentEditorInstance.GridSelector);
+        }
+        this._appendElement = targetElement;
+        this.InsertBreak(targetElement);
+    };
+    RichContentBreakEditor.prototype.InsertBreak = function (targetElement) {
+        var breakElement = $('<div class="rce-break clearfix"></div>');
+        if (!targetElement) {
+            targetElement = $("#" + this.RichContentEditorInstance.EditorId + " .rce-grid");
+        }
+        this.Attach(breakElement, targetElement);
+    };
+    RichContentBreakEditor.prototype.GetDetectionSelectors = function () {
+        return 'div.clearfix';
+    };
+    RichContentBreakEditor.prototype.Import = function (targetElement, source, touchedElements) {
+        if (source.is('div.clearfix')) {
+            var clone = source.clone();
+            clone.addClass('rce-break');
+            source.replaceWith(clone);
+            this.Attach(clone, targetElement);
+            return clone;
+        }
+        return null;
+    };
+    RichContentBreakEditor.prototype.GetMenuLabel = function () {
+        return "Break";
+    };
+    RichContentBreakEditor.prototype.GetMenuIconClasses = function () {
+        return 'fas fa-terminal';
+    };
+    RichContentBreakEditor.prototype.AllowInTableCell = function () {
+        return true;
+    };
+    RichContentBreakEditor.prototype.AllowInLink = function () {
+        return true;
+    };
+    RichContentBreakEditor.prototype.Clean = function (elem) {
+        elem.removeClass('rce-break');
+        if (elem.attr('class') === '')
+            elem.removeAttr('class');
+        elem.removeAttr('draggable');
+        _super.prototype.Clean.call(this, elem);
+    };
+    RichContentBreakEditor.prototype.GetContextButtonText = function (_elem) {
+        return 'c';
+    };
+    RichContentBreakEditor.prototype.UseWrapper = function () {
+        return false;
+    };
+    return RichContentBreakEditor;
+}(RichContentBaseEditor));
+RichContentBaseEditor.RegisterEditor('RichContentBreakEditor', RichContentBreakEditor);
+//# sourceMappingURL=RichContentBreakEditor.js.map 
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -2829,6 +2921,8 @@ var RichContentEditorLocale = /** @class */ (function () {
         this.Delete = "Delete";
         this.FieldRequiredLabel = "This field is required";
         this.EditClasses = "Edit CSS Classes";
+        this.NoClipBoardDataMessage = "Please copy content from an editor before using the Paste function.";
+        this.CannotWriteToClipBoardMessage = "Unable to write to clipboard:";
     }
     return RichContentEditorLocale;
 }());
@@ -2956,10 +3050,11 @@ var RichContentTextEditorLocale = /** @class */ (function () {
         this.Bold = "Bold";
         this.Italic = "Italic";
         this.MenuLabel = "Text";
-        this.OrderedList = "Numberic List";
+        this.OrderedList = "Numeric List";
         this.UnorderedList = "Bullet List";
         this.Link = "Link";
         this.NewLinkText = "New link";
+        this.InputCommandLabel = "Input field";
     }
     return RichContentTextEditorLocale;
 }());

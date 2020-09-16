@@ -87,12 +87,17 @@
 
     public GetDetectionSelectors(): string
     {
-        return 'h1,h2,h3,h4,h5,h6';
+        return '*:header';
     }
 
-    public Import(targetElement: JQuery<HTMLElement>, source: JQuery<HTMLElement>)
+    public GetActualElement(elem: JQuery<HTMLElement>): JQuery<HTMLElement>
     {
-        if (source.is('h1,h2,h3,h4,h5,h6'))
+        return elem.find('*:header');
+    }
+
+    public Import(targetElement: JQuery<HTMLElement>, source: JQuery<HTMLElement>, touchedElements: HTMLElement[]): JQuery<HTMLElement>
+    {
+        if (source.is(':header'))
         {
             let clone = source.clone();
             clone.attr('contenteditable', 'true');
@@ -105,7 +110,11 @@
             this.Attach(headingWrapper, targetElement);
 
             this.setupEvents(clone);
+
+            return headingWrapper;
         }
+
+        return null;
     }
 
     public GetMenuLabel(): string

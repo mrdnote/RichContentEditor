@@ -14,7 +14,7 @@ declare class RichContentTableEditor extends RichContentBaseEditor {
     private attachColumn;
     private getTableColumnWidth;
     GetDetectionSelectors(): string;
-    Import(targetElement: JQuery<HTMLElement>, source: JQuery<HTMLElement>): void;
+    Import(targetElement: JQuery<HTMLElement>, source: JQuery<HTMLElement>, touchedElements: HTMLElement[]): JQuery<HTMLElement>;
     GetMenuLabel(): string;
     GetMenuIconClasses(): string;
     GetContextButtonText(elem: JQuery<HTMLElement>): string;
@@ -27,7 +27,7 @@ declare class RichContentTableEditor extends RichContentBaseEditor {
     private getFrameworkTableColumnAlignment;
     private getRowContextCommands;
     private getTableContextCommands;
-    protected getActualElement(elem: JQuery<HTMLElement>): JQuery<HTMLElement>;
+    GetActualElement(elem: JQuery<HTMLElement>): JQuery<HTMLElement>;
     private getColumnWidthDialog;
     private getColumnWidthDialogHtml;
 }

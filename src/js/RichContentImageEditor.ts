@@ -1,9 +1,4 @@
-﻿enum ImageAlignment
-{
-    None, Fill, Left, Right
-}
-
-enum ColumnAlignment
+﻿enum ColumnAlignment
 {
     Left, Center, Right
 }
@@ -46,12 +41,10 @@ class RichContentImageEditor extends RichContentBaseEditor
 
         let url: string = null;
         let update = elem !== null;
-        let alignment = ImageAlignment.Fill;
 
         if (elem)
         {
             url = $('.rce-image', elem).attr('src');
-            alignment = this.getImageAlignment(elem);
         }
 
         this.RichContentEditorInstance.FileManager.ShowFileSelectionDialog(url, false, false, true,
@@ -60,24 +53,24 @@ class RichContentImageEditor extends RichContentBaseEditor
                 _this.OnChange();
                 if (update)
                 {
-                    this.updateImage(elem, url, alignment);
+                    this.updateImage(elem, url);
                 }
                 else 
                 {
-                    this.InsertImage(url, alignment, this._appendElement);
+                    this.InsertImage(url, this._appendElement);
                 }
                 return true;
             }
         );
     }
 
-    public InsertImage(url: string, alignment: ImageAlignment, targetElement?: JQuery<HTMLElement>)
+    public InsertImage(url: string, targetElement?: JQuery<HTMLElement>)
     {
         const imgWrapper = $('<div class="rce-image-wrapper"></div>');
         const img = $('<img class="rce-image"></img>');
         imgWrapper.append(img);
 
-        this.updateImage(imgWrapper, url, alignment);
+        this.updateImage(imgWrapper, url);
 
         if (!targetElement)
         {
@@ -87,37 +80,15 @@ class RichContentImageEditor extends RichContentBaseEditor
         this.Attach(imgWrapper, targetElement);
     }
 
-    private updateImage(elem: JQuery<HTMLElement>, url: string, alignment: ImageAlignment)
+    private updateImage(elem: JQuery<HTMLElement>, url: string)
     {
         const img = elem.find('.rce-image');
         img.attr('src', url);
         let childToAppend: JQuery<HTMLElement> = null;
-        this.removeEditorAlignmentClasses(elem);
-        elem.addClass(this.getImageAlignmentClass(alignment));
         if (childToAppend)
         {
             elem.append(childToAppend);
         }
-    }
-
-    private getImageAlignmentClass(alignment: ImageAlignment): string
-    {
-        switch (alignment)
-        {
-            case ImageAlignment.Left: return 'rce-image-left';
-            case ImageAlignment.Right: return 'rce-image-right';
-            case ImageAlignment.Fill: return 'rce-image-block';
-            case ImageAlignment.None: return '';
-            default: throw `Unexpected alignment value: ${alignment}`;
-        }
-    }
-
-    private getImageAlignment(elem: JQuery<HTMLElement>): ImageAlignment
-    {
-        if (elem.hasClass('rce-image-left')) return ImageAlignment.Left;
-        if (elem.hasClass('rce-image-block')) return ImageAlignment.Fill;
-        if (elem.hasClass('rce-image-right')) return ImageAlignment.Right;
-        return ImageAlignment.None;
     }
 
     public GetDetectionSelectors(): string
@@ -125,44 +96,28 @@ class RichContentImageEditor extends RichContentBaseEditor
         return 'img';
     }
 
-    public Import(targetElement: JQuery<HTMLElement>, source: JQuery<HTMLElement>)
+    public GetActualElement(elem: JQuery<HTMLElement>): JQuery<HTMLElement>
     {
-        if (source.is('img') || source.is('a') && source.children().first().is('img'))
+        return elem.find('img');
+    }
+
+    public Import(targetElement: JQuery<HTMLElement>, source: JQuery<HTMLElement>, touchedElements: HTMLElement[]): JQuery<HTMLElement>
+    {
+        if (source.is('img'))
         {
             let clone = source.clone();
             const imgWrapper = $('<div class="rce-image-wrapper"></div>');
             imgWrapper.append(clone);
             const img = imgWrapper.find('img');
             img.addClass('rce-image');
-            let alignment = ImageAlignment.None;
-            if (img.hasClass(this.RichContentEditorInstance.GridFramework.GetLeftAlignClass()))
-            {
-                alignment = ImageAlignment.Left;
-                img.removeClass(this.RichContentEditorInstance.GridFramework.GetLeftAlignClass());
-            }
-            else if (img.hasClass(this.RichContentEditorInstance.GridFramework.GetRightAlignClass()))
-            {
-                alignment = ImageAlignment.Right;
-                img.removeClass(this.RichContentEditorInstance.GridFramework.GetRightAlignClass());
-            }
-            else if (img.hasClass(this.RichContentEditorInstance.GridFramework.GetBlockAlignClass()))
-            {
-                alignment = ImageAlignment.Fill;
-                img.removeClass(this.RichContentEditorInstance.GridFramework.GetBlockAlignClass());
-            }
-            else if (this.hasCss(img, this.RichContentEditorInstance.GridFramework.GetBlockAlignCss()))
-            {
-                alignment = ImageAlignment.Fill;
-                img.css(this.RichContentEditorInstance.GridFramework.GetBlockAlignCss().Key, '');
-            }
-            if (alignment !== ImageAlignment.None)
-            {
-                imgWrapper.addClass(this.getImageAlignmentClass(alignment));
-            }
             source.replaceWith(imgWrapper);
 
             this.Attach(imgWrapper, targetElement);
+
+            return imgWrapper;
         }
+
+        return null;
     }
 
     private hasCss(elem: JQuery<HTMLElement>, css: KeyValue<string>): boolean
@@ -200,32 +155,12 @@ class RichContentImageEditor extends RichContentBaseEditor
 
     public Clean(elem: JQuery<HTMLElement>): void
     {
-        var wrapper = elem.closest('.rce-image-wrapper');
-        if (wrapper.hasClass('rce-image-left'))
-        {
-            elem.addClass(this.RichContentEditorInstance.GridFramework.GetLeftAlignClass());
-            const css = this.RichContentEditorInstance.GridFramework.GetLeftAlignCss();
-            if (css != null) elem.css(css.Key, css.Value);
-        }
-        if (wrapper.hasClass('rce-image-right'))
-        {
-            elem.addClass(this.RichContentEditorInstance.GridFramework.GetRightAlignClass());
-            const css = this.RichContentEditorInstance.GridFramework.GetRightAlignCss();
-            if (css != null) elem.css(css.Key, css.Value);
-        }
-        if (wrapper.hasClass('rce-image-block'))
-        {
-            elem.addClass(this.RichContentEditorInstance.GridFramework.GetBlockAlignClass());
-            const css = this.RichContentEditorInstance.GridFramework.GetBlockAlignCss();
-            if (css != null) elem.css(css.Key, css.Value);
-        }
+        super.Clean(elem);
 
         elem.removeClass('rce-image');
         if (elem.attr('class') === '')
             elem.removeAttr('class');
         elem.removeAttr('draggable');
-
-        super.Clean(elem);
     }
 
     public GetContextButtonText(_elem: JQuery<HTMLElement>): string
@@ -237,44 +172,12 @@ class RichContentImageEditor extends RichContentBaseEditor
     {
         const _this = this;
 
-        var leftCommand = new ContextCommand(this._locale.AlignLeftMenuLabel, 'fas fa-arrow-left', function (elem)
-        {
-            _this.removeEditorAlignmentClasses(elem);
-            elem.addClass('rce-image-left');
-            _this.OnChange();
-        });
-
-        var rightCommand = new ContextCommand(this._locale.AlignRightMenuLabel, 'fas fa-arrow-right', function (elem)
-        {
-            _this.removeEditorAlignmentClasses(elem);
-            elem.addClass('rce-image-right');
-            _this.OnChange();
-        });
-
-        var blockCommand = new ContextCommand(this._locale.BlockAlignMenuLabel, 'fas fa-expand-arrows-alt', function (elem)
-        {
-            _this.removeEditorAlignmentClasses(elem);
-            elem.addClass('rce-image-block');
-            _this.OnChange();
-        });
-
-        var defaultCommand = new ContextCommand(this._locale.DefaultSizeMenuLabel, 'fas fa-compress-arrows-alt', function (elem)
-        {
-            _this.removeEditorAlignmentClasses(elem);
-            _this.OnChange();
-        });
-
         var editCommand = new ContextCommand(this._locale.EditMenuLabel, 'fas fa-cog', function (elem)
         {
             _this.showSelectionDialog(elem);
         });
 
-        return [leftCommand, rightCommand, blockCommand, defaultCommand, editCommand];
-    }
-
-    private removeEditorAlignmentClasses(elem: JQuery<HTMLElement>)
-    {
-        elem.removeClass('rce-image-left rce-image-block rce-image-right');
+        return [editCommand];
     }
 }
 
