@@ -86,7 +86,7 @@
 
     public GetContextButtonText(_elem: JQuery<HTMLElement>): string
     {
-        return 'c';
+        return 'break';
     }
 
     public UseWrapper(): boolean

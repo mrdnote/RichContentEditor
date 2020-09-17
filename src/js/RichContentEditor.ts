@@ -447,15 +447,8 @@ class RichContentEditor
         RichContentEditor._localeRegistrations[language] = localeType;
     }
 
-    public GetEditor?(editor: string): RichContentBaseEditor
+    public constructor(options: RichContentEditorOptions)
     {
-        return this.RegisteredEditors[editor];
-    }
-
-    public Init(editorId: string, options: RichContentEditorOptions): RichContentEditor
-    {
-        const _this = this;
-
         if (!options)
         {
             options = new RichContentEditorOptions();
@@ -465,25 +458,36 @@ class RichContentEditor
         if (options.ShowSaveButton === undefined) options.ShowSaveButton = true;
         if (options.ShowCloseButton === undefined) options.ShowCloseButton = true;
 
+        this.Options = options;
+
+        this.instantiateEditors(options.Editors);
+    }
+
+    public GetEditor?(editor: string): RichContentBaseEditor
+    {
+        return this.RegisteredEditors[editor];
+    }
+
+    public Init(editorId: string): RichContentEditor
+    {
+        const _this = this;
+
         this.EditorId = editorId;
         const gridSelector = '#' + editorId;
         this.GridSelector = gridSelector;
-        this.Options = options;
-        this.Locale = new RichContentEditor._localeRegistrations[options.Language]();
-        this.GridFramework = GridFrameworkBase.Create(options.GridFramework);
-        this.FileManager = new FileManager(this, options.Language);
-        this.DialogManager = new DialogManager(this, options.Language);
-
-        this.instantiateEditors(options.Editors);
+        this.Locale = new RichContentEditor._localeRegistrations[this.Options.Language]();
+        this.GridFramework = GridFrameworkBase.Create(this.Options.GridFramework);
+        this.FileManager = new FileManager(this, this.Options.Language);
+        this.DialogManager = new DialogManager(this, this.Options.Language);
 
         const editorElement = $(HtmlTemplates.GetMainEditorTemplate(editorId));
         editorElement.data('orig', $(gridSelector).prop('outerHTML'));
-        if (options.CancelUrl)
+        if (this.Options.CancelUrl)
         {
-            editorElement.find('.rce-editor-close').attr('href', options.CancelUrl);
+            editorElement.find('.rce-editor-close').attr('href', this.Options.CancelUrl);
         }
-        editorElement.find('.rce-editor-save').toggleClass('rce-hide', !options.ShowSaveButton)
-        editorElement.find('.rce-editor-close').toggleClass('rce-hide', !options.ShowCloseButton)
+        editorElement.find('.rce-editor-save').toggleClass('rce-hide', !this.Options.ShowSaveButton)
+        editorElement.find('.rce-editor-close').toggleClass('rce-hide', !this.Options.ShowCloseButton)
         const touchedElements: HTMLElement[] = [];
         this.ImportChildren(editorElement, $(gridSelector), false, false, touchedElements);
         $(gridSelector).replaceWith(editorElement);
@@ -530,7 +534,7 @@ class RichContentEditor
             }
         });
 
-        if (!options.CancelUrl)
+        if (!this.Options.CancelUrl)
         {
             $(gridSelector + ' .rce-editor-close').click(function ()
             {

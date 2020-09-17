@@ -156,7 +156,12 @@
 }
 
 .rce-grid-wrapper.edit-mode .rce-break {
-    height: 1.6rem;
+    height: 16px;
+    clear: both;
+}
+
+.rce-grid-wrapper.edit-mode .rce-break .rce-menu-button {
+    transform: none;
 }
 
 .rce-grid-wrapper.edit-mode .rce-grid .rce-table-wrapper {

@@ -111,6 +111,7 @@ class RichContentImageEditor extends RichContentBaseEditor
             const img = imgWrapper.find('img');
             img.addClass('rce-image');
             source.replaceWith(imgWrapper);
+            this.CopyCssClasses(img, imgWrapper);
 
             this.Attach(imgWrapper, targetElement);
 

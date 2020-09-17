@@ -45,7 +45,9 @@ class RichContentBaseEditor
     public static Create(editor: string): RichContentBaseEditor
     {
         if (!RichContentBaseEditor._registrations.hasOwnProperty(editor)) throw `RichContentBaseEditor ${editor} not registered!`;
-        return new RichContentBaseEditor._registrations[editor];
+        const result = new RichContentBaseEditor._registrations[editor];
+        result.Name = editor;
+        return result;
     }
 
     public static GetRegistrations(): Dictionary<typeof RichContentBaseEditor>
@@ -55,7 +57,6 @@ class RichContentBaseEditor
 
     public Init(richContentEditor: RichContentEditor): void
     {
-        this.Name = this.constructor['name'];
         this.RichContentEditorInstance = richContentEditor;
     }
 
@@ -83,12 +84,12 @@ class RichContentBaseEditor
 
     public GetMenuLabel(): string
     {
-        throw new Error(`GetMenuLabel() not implemented in ${this.constructor['name']}!`);
+        throw new Error(`GetMenuLabel() not implemented in ${this.Name}!`);
     }
 
     public GetMenuIconClasses(): string
     {
-        throw new Error(`GetMenuIconClasses() not implemented in ${this.constructor['name']}!`);
+        throw new Error(`GetMenuIconClasses() not implemented in ${this.Name}!`);
     }
 
     public Clicked(elem: JQuery<HTMLElement>): void
@@ -108,7 +109,7 @@ class RichContentBaseEditor
 
     public GetEditorTypeName(): string
     {
-        return this.constructor['name'];
+        return this.Name;
     }
 
     public GetContextCommands(_elem: JQuery<HTMLElement>): ContextCommand[]
@@ -242,7 +243,7 @@ class RichContentBaseEditor
                 for (let index in _this._registeredCssClasses)
                 {
                     const cls = _this._registeredCssClasses[index];
-                    $(`input[data-value="${cls}"]`, list).prop('checked', actualElement.hasClass(cls));
+                    $(`input[data-value="${cls}"]`, list).prop('checked', actualElement.hasClass(cls) || elem.hasClass(cls));
                 }
 
                 dialog.data('elem', elem);
@@ -257,6 +258,7 @@ class RichContentBaseEditor
                     {
                         const checkBox = $(this);
                         const cls = checkBox.attr('data-value');
+                        elem.toggleClass(cls, checkBox.prop('checked'));
                         actualElement.toggleClass(cls, checkBox.prop('checked'));
                     });
 

@@ -22,7 +22,7 @@ var Editor = /** @class */ (function () {
             GridFramework: framework
         };
         /*const _rce2 = */
-        new RichContentEditor().Init('RichContentEditorCanvas2', options2);
+        new RichContentEditor(options2).Init('RichContentEditorCanvas2');
         $('#ImageCheckBox,#TablesCheckBox').change(function () {
             rce.Delete();
             options.Editors = _this.getEditors();
@@ -74,7 +74,7 @@ var Editor = /** @class */ (function () {
         return editors;
     };
     Editor.prototype.instantiateMainEditor = function (options) {
-        var rce = new RichContentEditor().Init('RichContentEditorCanvas', options);
+        var rce = new RichContentEditor(options);
         var framework = $('#Framework').val();
         var tableCssClasses = ['red', 'green', 'yellow'];
         if (framework === "GridFrameworkMaterialize") {
@@ -89,6 +89,7 @@ var Editor = /** @class */ (function () {
             rce.GetEditor("RichContentTextEditor").RegisterCustomTag('Input field', 'edit', '<input/>', function (editor, tag) { tag.val("Inserted on " + new Date().toLocaleTimeString()); });
         }
         rce.GetEditor("RichContentTableEditor").RegisterCssClasses(tableCssClasses);
+        rce.Init('RichContentEditorCanvas');
         return rce;
     };
     return Editor;

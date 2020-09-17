@@ -31,7 +31,7 @@ class Editor
         };
 
         /*const _rce2 = */
-        new RichContentEditor().Init('RichContentEditorCanvas2', options2);
+        new RichContentEditor(options2).Init('RichContentEditorCanvas2');
 
         $('#ImageCheckBox,#TablesCheckBox').change(function ()
         {
@@ -110,7 +110,7 @@ class Editor
 
     private instantiateMainEditor(options: RichContentEditorOptions)
     {
-        const rce = new RichContentEditor().Init('RichContentEditorCanvas', options);
+        const rce = new RichContentEditor(options);
 
         const framework = $('#Framework').val() as string;
         let tableCssClasses = ['red', 'green', 'yellow'];
@@ -130,6 +130,8 @@ class Editor
                 (editor: RichContentEditor, tag: JQuery<HTMLElement>) => { (tag as JQuery<HTMLInputElement>).val(`Inserted on ${new Date().toLocaleTimeString()}`); });
         }
         rce.GetEditor("RichContentTableEditor").RegisterCssClasses(tableCssClasses);
+
+        rce.Init('RichContentEditorCanvas');
 
         return rce;
     }

@@ -74,13 +74,14 @@ var RichContentBaseEditor = /** @class */ (function () {
     RichContentBaseEditor.Create = function (editor) {
         if (!RichContentBaseEditor._registrations.hasOwnProperty(editor))
             throw "RichContentBaseEditor " + editor + " not registered!";
-        return new RichContentBaseEditor._registrations[editor];
+        var result = new RichContentBaseEditor._registrations[editor];
+        result.Name = editor;
+        return result;
     };
     RichContentBaseEditor.GetRegistrations = function () {
         return this._registrations;
     };
     RichContentBaseEditor.prototype.Init = function (richContentEditor) {
-        this.Name = this.constructor['name'];
         this.RichContentEditorInstance = richContentEditor;
     };
     RichContentBaseEditor.prototype.GetDetectionSelectors = function () {
@@ -98,10 +99,10 @@ var RichContentBaseEditor = /** @class */ (function () {
         }
     };
     RichContentBaseEditor.prototype.GetMenuLabel = function () {
-        throw new Error("GetMenuLabel() not implemented in " + this.constructor['name'] + "!");
+        throw new Error("GetMenuLabel() not implemented in " + this.Name + "!");
     };
     RichContentBaseEditor.prototype.GetMenuIconClasses = function () {
-        throw new Error("GetMenuIconClasses() not implemented in " + this.constructor['name'] + "!");
+        throw new Error("GetMenuIconClasses() not implemented in " + this.Name + "!");
     };
     RichContentBaseEditor.prototype.Clicked = function (elem) {
     };
@@ -112,7 +113,7 @@ var RichContentBaseEditor = /** @class */ (function () {
         return true;
     };
     RichContentBaseEditor.prototype.GetEditorTypeName = function () {
-        return this.constructor['name'];
+        return this.Name;
     };
     RichContentBaseEditor.prototype.GetContextCommands = function (_elem) {
         return null;
@@ -206,7 +207,7 @@ var RichContentBaseEditor = /** @class */ (function () {
                 var gridSelector = _this.RichContentEditorInstance.GridSelector;
                 for (var index in _this._registeredCssClasses) {
                     var cls = _this._registeredCssClasses[index];
-                    $("input[data-value=\"" + cls + "\"]", list).prop('checked', actualElement.hasClass(cls));
+                    $("input[data-value=\"" + cls + "\"]", list).prop('checked', actualElement.hasClass(cls) || elem.hasClass(cls));
                 }
                 dialog.data('elem', elem);
                 _this.RichContentEditorInstance.DialogManager.ShowDialog(dialog, function (dialog) {
@@ -217,6 +218,7 @@ var RichContentBaseEditor = /** @class */ (function () {
                     checkBoxes.each(function () {
                         var checkBox = $(this);
                         var cls = checkBox.attr('data-value');
+                        elem.toggleClass(cls, checkBox.prop('checked'));
                         actualElement.toggleClass(cls, checkBox.prop('checked'));
                     });
                     _this.OnChange();
@@ -554,20 +556,11 @@ var FileManager = /** @class */ (function () {
     return FileManager;
 }());
 var RichContentEditor = /** @class */ (function () {
-    function RichContentEditor() {
+    function RichContentEditor(options) {
         this.RegisteredEditors = {};
         this.FileManager = null;
         this.DialogManager = null;
         this.GridFramework = null;
-    }
-    RichContentEditor.RegisterLocale = function (localeType, language) {
-        RichContentEditor._localeRegistrations[language] = localeType;
-    };
-    RichContentEditor.prototype.GetEditor = function (editor) {
-        return this.RegisteredEditors[editor];
-    };
-    RichContentEditor.prototype.Init = function (editorId, options) {
-        var _this = this;
         if (!options) {
             options = new RichContentEditorOptions();
         }
@@ -577,22 +570,31 @@ var RichContentEditor = /** @class */ (function () {
             options.ShowSaveButton = true;
         if (options.ShowCloseButton === undefined)
             options.ShowCloseButton = true;
+        this.Options = options;
+        this.instantiateEditors(options.Editors);
+    }
+    RichContentEditor.RegisterLocale = function (localeType, language) {
+        RichContentEditor._localeRegistrations[language] = localeType;
+    };
+    RichContentEditor.prototype.GetEditor = function (editor) {
+        return this.RegisteredEditors[editor];
+    };
+    RichContentEditor.prototype.Init = function (editorId) {
+        var _this = this;
         this.EditorId = editorId;
         var gridSelector = '#' + editorId;
         this.GridSelector = gridSelector;
-        this.Options = options;
-        this.Locale = new RichContentEditor._localeRegistrations[options.Language]();
-        this.GridFramework = GridFrameworkBase.Create(options.GridFramework);
-        this.FileManager = new FileManager(this, options.Language);
-        this.DialogManager = new DialogManager(this, options.Language);
-        this.instantiateEditors(options.Editors);
+        this.Locale = new RichContentEditor._localeRegistrations[this.Options.Language]();
+        this.GridFramework = GridFrameworkBase.Create(this.Options.GridFramework);
+        this.FileManager = new FileManager(this, this.Options.Language);
+        this.DialogManager = new DialogManager(this, this.Options.Language);
         var editorElement = $(HtmlTemplates.GetMainEditorTemplate(editorId));
         editorElement.data('orig', $(gridSelector).prop('outerHTML'));
-        if (options.CancelUrl) {
-            editorElement.find('.rce-editor-close').attr('href', options.CancelUrl);
+        if (this.Options.CancelUrl) {
+            editorElement.find('.rce-editor-close').attr('href', this.Options.CancelUrl);
         }
-        editorElement.find('.rce-editor-save').toggleClass('rce-hide', !options.ShowSaveButton);
-        editorElement.find('.rce-editor-close').toggleClass('rce-hide', !options.ShowCloseButton);
+        editorElement.find('.rce-editor-save').toggleClass('rce-hide', !this.Options.ShowSaveButton);
+        editorElement.find('.rce-editor-close').toggleClass('rce-hide', !this.Options.ShowCloseButton);
         var touchedElements = [];
         this.ImportChildren(editorElement, $(gridSelector), false, false, touchedElements);
         $(gridSelector).replaceWith(editorElement);
@@ -624,7 +626,7 @@ var RichContentEditor = /** @class */ (function () {
                 _this.Options.OnSave(html);
             }
         });
-        if (!options.CancelUrl) {
+        if (!this.Options.CancelUrl) {
             $(gridSelector + ' .rce-editor-close').click(function () {
                 var orig = $($(gridSelector).data('orig'));
                 $(gridSelector).replaceWith(orig);
@@ -1502,6 +1504,7 @@ var RichContentImageEditor = /** @class */ (function (_super) {
             var img = imgWrapper.find('img');
             img.addClass('rce-image');
             source.replaceWith(imgWrapper);
+            this.CopyCssClasses(img, imgWrapper);
             this.Attach(imgWrapper, targetElement);
             return imgWrapper;
         }
@@ -2674,7 +2677,7 @@ var RichContentBreakEditor = /** @class */ (function (_super) {
         _super.prototype.Clean.call(this, elem);
     };
     RichContentBreakEditor.prototype.GetContextButtonText = function (_elem) {
-        return 'c';
+        return 'break';
     };
     RichContentBreakEditor.prototype.UseWrapper = function () {
         return false;

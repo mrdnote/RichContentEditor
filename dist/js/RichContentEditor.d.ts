@@ -68,8 +68,9 @@ declare class RichContentEditor {
     Locale: RichContentEditorLocale;
     private static _localeRegistrations;
     static RegisterLocale<T extends typeof RichContentEditorLocale>(localeType: T, language: string): void;
+    constructor(options: RichContentEditorOptions);
     GetEditor?(editor: string): RichContentBaseEditor;
-    Init(editorId: string, options: RichContentEditorOptions): RichContentEditor;
+    Init(editorId: string): RichContentEditor;
     GetDetectionSelectors(editor: RichContentBaseEditor): string;
     ImportChildren(target: JQuery<HTMLElement>, source: JQuery<HTMLElement>, inTableCell: any, inLink: boolean, touchedElements: HTMLElement[]): void;
     Delete(): void;
