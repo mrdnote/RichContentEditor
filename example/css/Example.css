@@ -155,3 +155,17 @@ a[data-featherlight].left {
 img.bordered {
     border: solid 1px silver;
 }
+
+.featherlight-previous span {
+    font-family: 'Font Awesome 5 Free';
+    left: 0;
+    color: #1b6ec2;
+    font-weight: 900;
+}
+
+.featherlight-next span {
+    font-family: 'Font Awesome 5 Free';
+    right: 0;
+    color: #1b6ec2;
+    font-weight: 900;
+}

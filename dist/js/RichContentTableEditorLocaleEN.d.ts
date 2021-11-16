@@ -2,6 +2,7 @@ declare class RichContentTableEditorLocale {
     MenuLabel: string;
     SettingsMenuLabel: string;
     InsertColumnMenuLabel: string;
+    CopyRowMenuLabel: string;
     InsertRowMenuLabel: string;
     SettingsDialogTitle: string;
     ColumnWidthLabel: string;

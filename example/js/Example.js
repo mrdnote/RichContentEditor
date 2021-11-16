@@ -56,6 +56,10 @@ var Editor = /** @class */ (function () {
             $(this).addClass('rce-hide');
             rce = _this.instantiateMainEditor(options);
         });
+        $('.gallery a').featherlightGallery({
+            previousIcon: '&#61657;',
+            nextIcon: '&#61658;',
+        });
     };
     Editor.prototype.handleClose = function () {
         $('#ContentEditButton').removeClass('rce-hide');

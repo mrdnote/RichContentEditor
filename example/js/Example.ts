@@ -79,6 +79,11 @@ class Editor
             $(this).addClass('rce-hide');
             rce = _this.instantiateMainEditor(options);
         });
+
+        ($('.gallery a') as any).featherlightGallery({
+            previousIcon: '&#61657;',     /* Code that is used as previous icon */
+            nextIcon: '&#61658;',
+        });
     }
 
     private handleClose()

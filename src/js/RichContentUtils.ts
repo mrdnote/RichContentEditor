@@ -20,6 +20,10 @@ class RichContentUtils
         {
             return 'video/mp4';
         }
+        if (ext === 'mp3')
+        {
+            return 'audio/mpeg';
+        }
 
         return null;
     }
@@ -29,6 +33,18 @@ class RichContentUtils
         const ext = this.GetExtensionOfUrl(url);
 
         if (ext === 'mp4')
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    public static IsAudioUrl(url: string): boolean
+    {
+        const ext = this.GetExtensionOfUrl(url);
+
+        if (ext === 'mp3')
         {
             return true;
         }

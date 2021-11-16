@@ -1,4 +1,9 @@
 /// <reference types="jquery" />
+declare enum MediaType {
+    GenericVideo = 0,
+    YouTubeVideo = 1,
+    GenericAudio = 2
+}
 declare class RichContentVideoEditor extends RichContentBaseEditor {
     private _appendElement;
     private static _localeRegistrations?;
@@ -9,9 +14,9 @@ declare class RichContentVideoEditor extends RichContentBaseEditor {
     private showSelectionDialog;
     private getUrl;
     InsertElement(url: string, targetElement?: JQuery<HTMLElement>): void;
-    private isYouTube;
     private getCoreElement;
     private updateElement;
+    private getMediaType;
     GetDetectionSelectors(): string;
     GetActualElement(elem: JQuery<HTMLElement>): JQuery<HTMLElement>;
     Import(targetElement: JQuery<HTMLElement>, source: JQuery<HTMLElement>, touchedElements: HTMLElement[]): JQuery<HTMLElement>;

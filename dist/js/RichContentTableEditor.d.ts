@@ -9,6 +9,7 @@ declare class RichContentTableEditor extends RichContentBaseEditor {
     Clean(elem: JQuery<HTMLElement>): void;
     AllowInTableCell(): boolean;
     private addTableRow;
+    private duplicateTableRow;
     private attachRow;
     private addTableColumn;
     private attachColumn;

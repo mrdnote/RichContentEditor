@@ -7,6 +7,7 @@ declare class XYPosition {
 declare class RichContentUtils {
     static GetMimeType(url: string): string;
     static IsVideoUrl(url: string): boolean;
+    static IsAudioUrl(url: string): boolean;
     static HasFeatherLight(): boolean;
     static GetExtensionOfUrl(url: string): string;
     static ShowMenu(menu: any, buttonOrPosition: JQuery<HTMLElement> | XYPosition): void;

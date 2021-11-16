@@ -13,11 +13,21 @@ var RichContentUtils = /** @class */ (function () {
         if (ext === 'mp4') {
             return 'video/mp4';
         }
+        if (ext === 'mp3') {
+            return 'audio/mpeg';
+        }
         return null;
     };
     RichContentUtils.IsVideoUrl = function (url) {
         var ext = this.GetExtensionOfUrl(url);
         if (ext === 'mp4') {
+            return true;
+        }
+        return false;
+    };
+    RichContentUtils.IsAudioUrl = function (url) {
+        var ext = this.GetExtensionOfUrl(url);
+        if (ext === 'mp3') {
             return true;
         }
         return false;
@@ -229,7 +239,7 @@ var RichContentBaseEditor = /** @class */ (function () {
             menu.append(editClassesItem);
         }
         var deleteItem = $("<button type=\"button\" href=\"javascript:\" class=\"rce-menu-item\"><i class=\"rce-menu-icon fas fa-trash\"></i> <span>" + _this.RichContentEditorInstance.Locale.Delete + "</span></button>");
-        deleteItem.click(function () { _this.OnDelete(elem), menu.remove(); });
+        deleteItem.click(function () { _this.OnChange(), _this.OnDelete(elem), menu.remove(); });
         menu.append(deleteItem);
         RichContentUtils.ShowMenu(menu, buttonOrPosition);
     };
@@ -438,7 +448,7 @@ var FileManager = /** @class */ (function () {
                 var rows = data;
                 for (var i = 0; i < rows.length; i++) {
                     var row = rows[i];
-                    var rowDiv = $("<div class=\"row\"><div class=\"col s12\"><span class=\"item-title\">" + row.name + "</span><a href=\"" + row.uri + "\" target=\"_blank\" class=\"rce-right\"><i class=\"fas fa-external-link-alt\"></i></a></div></div>");
+                    var rowDiv = $("<div class=\"row\"><div class=\"col s12\"><span class=\"item-title\">" + row.Name + "</span><a href=\"" + row.Uri + "\" target=\"_blank\" class=\"rce-right\"><i class=\"fas fa-external-link-alt\"></i></a></div></div>");
                     $('.file-table', dialog).append(rowDiv);
                 }
                 $('.file-table .col', dialog).click(function () {
@@ -664,6 +674,12 @@ var RichContentEditor = /** @class */ (function () {
         $(gridSelector + ' .add-button').click(function () {
             _this.CloseAllMenus();
             _this.showAddMenu($(this));
+        });
+        $(gridSelector + ' .add-text-button').click(function () {
+            var editor = _this.RegisteredEditors['RichContentTextEditor'];
+            _this.CloseAllMenus();
+            _this.handleChanged();
+            editor.Insert($(gridSelector + ' .rce-grid'));
         });
         $(gridSelector + ' .paste-button').click(function () {
             _this.CloseAllMenus();
@@ -983,7 +999,7 @@ var HtmlTemplates = /** @class */ (function () {
     function HtmlTemplates() {
     }
     HtmlTemplates.GetMainEditorTemplate = function (id) {
-        return "\n            <div id=\"" + id + "\" class=\"rce-grid-wrapper edit-mode\">\n                <div class=\"rce-grid\">\n                    <a class=\"rce-button rce-button-flat rce-menu-button add-button\"><i class=\"fas fa-plus-circle\"></i></a>\n                    <a class=\"rce-button rce-button-flat rce-menu-button paste-button\"><i class=\"fas fa-paste\"></i></a>\n                </div>\n\n                <div class=\"rce-editor-top-icons\">\n                    <button type=\"button\" class=\"rce-button rce-button-toolbar rce-editor-preview-lock\"><i class=\"fas fa-eye\"></i></button>\n                    <button type=\"button\" class=\"rce-button rce-button-toolbar rce-editor-preview-unlock rce-hide\"><i class=\"fas fa-eye-slash\"></i></button>\n                    <button type=\"button\" class=\"rce-button rce-button-toolbar rce-editor-copy\"><i class=\"fas fa-copy\"></i></button>\n                    <button type=\"button\" class=\"rce-button rce-button-toolbar rce-editor-save rce-hide\"><i class=\"fas fa-save\"></i></button>\n                    <a href=\"javascript:\" class=\"rce-button rce-button-toolbar rce-editor-close rce-hide\"><i class=\"fas fa-times\"></i></a>\n                </div>\n            </div>";
+        return "\n            <div id=\"" + id + "\" class=\"rce-grid-wrapper edit-mode\">\n                <div class=\"rce-grid\">\n                    <a class=\"rce-button rce-button-flat rce-menu-button add-button\"><i class=\"fas fa-plus-circle\"></i></a>\n                    <a class=\"rce-button rce-button-flat rce-menu-button add-text-button\"><i class=\"fas fa-font\"></i></a>\n                    <a class=\"rce-button rce-button-flat rce-menu-button paste-button\"><i class=\"fas fa-paste\"></i></a>\n                </div>\n\n                <div class=\"rce-editor-top-icons\">\n                    <button type=\"button\" class=\"rce-button rce-button-toolbar rce-editor-preview-lock\"><i class=\"fas fa-eye\"></i></button>\n                    <button type=\"button\" class=\"rce-button rce-button-toolbar rce-editor-preview-unlock rce-hide\"><i class=\"fas fa-eye-slash\"></i></button>\n                    <button type=\"button\" class=\"rce-button rce-button-toolbar rce-editor-copy\"><i class=\"fas fa-copy\"></i></button>\n                    <button type=\"button\" class=\"rce-button rce-button-toolbar rce-editor-save rce-hide\"><i class=\"fas fa-save\"></i></button>\n                    <a href=\"javascript:\" class=\"rce-button rce-button-toolbar rce-editor-close rce-hide\"><i class=\"fas fa-times\"></i></a>\n                </div>\n            </div>";
     };
     return HtmlTemplates;
 }());
@@ -992,10 +1008,12 @@ var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -1128,6 +1146,8 @@ var RichContentTextEditor = /** @class */ (function (_super) {
             elem.removeAttr('class');
         elem.removeAttr('contenteditable');
         elem.addClass('text');
+        // Remove the attribute to prevent clicking on links in the text editor.
+        elem.find('a').removeAttr('onclick');
         _super.prototype.Clean.call(this, elem);
     };
     RichContentTextEditor.prototype.Clicked = function (elem) {
@@ -1263,10 +1283,12 @@ var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -1418,10 +1440,12 @@ var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -1556,28 +1580,36 @@ var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var RichContentVideoEditor = /** @class */ (function (_super) {
-    __extends(RichContentVideoEditor, _super);
-    function RichContentVideoEditor() {
+var MediaType;
+(function (MediaType) {
+    MediaType[MediaType["GenericVideo"] = 0] = "GenericVideo";
+    MediaType[MediaType["YouTubeVideo"] = 1] = "YouTubeVideo";
+    MediaType[MediaType["GenericAudio"] = 2] = "GenericAudio";
+})(MediaType || (MediaType = {}));
+var RichContentMediaEditor = /** @class */ (function (_super) {
+    __extends(RichContentMediaEditor, _super);
+    function RichContentMediaEditor() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
-    RichContentVideoEditor.RegisterLocale = function (localeType, language) {
-        RichContentVideoEditor._localeRegistrations[language] = localeType;
+    RichContentMediaEditor.RegisterLocale = function (localeType, language) {
+        RichContentMediaEditor._localeRegistrations[language] = localeType;
     };
-    RichContentVideoEditor.prototype.Init = function (richContentEditor) {
+    RichContentMediaEditor.prototype.Init = function (richContentEditor) {
         _super.prototype.Init.call(this, richContentEditor);
-        this._locale = new RichContentVideoEditor._localeRegistrations[richContentEditor.Options.Language]();
+        this._locale = new RichContentMediaEditor._localeRegistrations[richContentEditor.Options.Language]();
     };
-    RichContentVideoEditor.prototype.Insert = function (targetElement) {
+    RichContentMediaEditor.prototype.Insert = function (targetElement) {
         _super.prototype.Insert.call(this, targetElement);
         if (!targetElement) {
             targetElement = $('.rce-grid', this.RichContentEditorInstance.GridSelector);
@@ -1585,13 +1617,13 @@ var RichContentVideoEditor = /** @class */ (function (_super) {
         this._appendElement = targetElement;
         this.showSelectionDialog(null);
     };
-    RichContentVideoEditor.prototype.showSelectionDialog = function (elem) {
+    RichContentMediaEditor.prototype.showSelectionDialog = function (elem) {
         var _this_1 = this;
         var _this = this;
         var url = null;
         var update = elem !== null;
         if (elem) {
-            var coreElement = elem.find('.video');
+            var coreElement = elem.find('.rce-media');
             url = this.getUrl(coreElement);
         }
         this.RichContentEditorInstance.FileManager.ShowFileSelectionDialog(url, false, false, false, function (url, _lightBox, _targetBlank) {
@@ -1605,54 +1637,74 @@ var RichContentVideoEditor = /** @class */ (function (_super) {
             return true;
         });
     };
-    RichContentVideoEditor.prototype.getUrl = function (coreElement) {
+    RichContentMediaEditor.prototype.getUrl = function (coreElement) {
         if ($('iframe', coreElement).length) {
             return $('iframe', coreElement).attr('src');
         }
-        return $('video source', coreElement).attr('src');
+        if ($('video source', coreElement).length) {
+            return $('video source', coreElement).attr('src');
+        }
+        return $('audio source', coreElement).attr('src');
     };
-    RichContentVideoEditor.prototype.InsertElement = function (url, targetElement) {
-        var wrapper = $('<div class="rce-video-wrapper"></div>');
+    RichContentMediaEditor.prototype.InsertElement = function (url, targetElement) {
+        var wrapper = $('<div class="rce-media-wrapper"></div>');
         this.updateElement(wrapper, url);
         if (!targetElement) {
             targetElement = $("#" + this.RichContentEditorInstance.EditorId + " .rce-grid");
         }
         this.Attach(wrapper, targetElement);
     };
-    RichContentVideoEditor.prototype.isYouTube = function (url) {
-        return url.indexOf('youtube.com/embed/') > -1;
-    };
-    RichContentVideoEditor.prototype.getCoreElement = function (youtube) {
-        if (youtube) {
-            return $('<div class="rce-video video"><iframe allowfullscreen="allowfullscreen" frameborder="0"></iframe></div>');
+    RichContentMediaEditor.prototype.getCoreElement = function (mediaType) {
+        if (mediaType == MediaType.YouTubeVideo) {
+            return $('<div class="rce-media video"><iframe allowfullscreen="allowfullscreen" frameborder="0"></iframe></div>');
         }
-        return $('<div class="rce-video video videojs"><video class="video-js vjs-default-skin vjs-16-9" preload="auto" controls><source /></video></div>');
+        if (mediaType == MediaType.GenericVideo) {
+            return $('<div class="rce-media video videojs"><video class="video-js vjs-default-skin vjs-16-9" preload="auto" controls><source /></video></div>');
+        }
+        if (mediaType == MediaType.GenericAudio) {
+            return $('<div class="rce-media audio videojs"><audio class="video-js vjs-default-skin" preload="auto" controls><source /></video></div>');
+        }
     };
-    RichContentVideoEditor.prototype.updateElement = function (elem, url) {
-        var youtube = this.isYouTube(url);
-        var coreElement = this.getCoreElement(youtube);
+    RichContentMediaEditor.prototype.updateElement = function (elem, url) {
+        var mediaType = this.getMediaType(url);
+        var coreElement = this.getCoreElement(mediaType);
         elem.empty();
         elem.append(coreElement);
-        if (youtube) {
+        if (mediaType == MediaType.YouTubeVideo) {
             var iframe = coreElement.find('iframe');
             iframe.attr('src', url);
         }
-        else {
+        else if (mediaType == MediaType.GenericVideo) {
             var source = coreElement.find('video source');
             source.attr('src', url);
         }
+        else if (mediaType == MediaType.GenericAudio) {
+            var source = coreElement.find('audio source');
+            source.attr('src', url);
+        }
     };
-    RichContentVideoEditor.prototype.GetDetectionSelectors = function () {
-        return 'div.video';
+    RichContentMediaEditor.prototype.getMediaType = function (url) {
+        if (url.indexOf('youtube.com/embed/') > -1) {
+            return MediaType.YouTubeVideo;
+        }
+        if (RichContentUtils.GetMimeType(url).split('/')[0] == 'video') {
+            return MediaType.GenericVideo;
+        }
+        if (RichContentUtils.GetMimeType(url).split('/')[0] == 'audio') {
+            return MediaType.GenericAudio;
+        }
     };
-    RichContentVideoEditor.prototype.GetActualElement = function (elem) {
+    RichContentMediaEditor.prototype.GetDetectionSelectors = function () {
+        return 'div.video,div.audio';
+    };
+    RichContentMediaEditor.prototype.GetActualElement = function (elem) {
         return elem.find('div.video');
     };
-    RichContentVideoEditor.prototype.Import = function (targetElement, source, touchedElements) {
-        if (source.is('div.video')) {
+    RichContentMediaEditor.prototype.Import = function (targetElement, source, touchedElements) {
+        if (source.is('div.video') || source.is('div.audio')) {
             var clone = source.clone();
-            clone.addClass('rce-video');
-            var wrapper = $('<div class="rce-video-wrapper"></div>');
+            clone.addClass('rce-media');
+            var wrapper = $('<div class="rce-media-wrapper"></div>');
             wrapper.append(clone);
             source.replaceWith(wrapper);
             this.Attach(wrapper, targetElement);
@@ -1660,48 +1712,48 @@ var RichContentVideoEditor = /** @class */ (function (_super) {
         }
         return null;
     };
-    RichContentVideoEditor.prototype.GetMenuLabel = function () {
+    RichContentMediaEditor.prototype.GetMenuLabel = function () {
         return this._locale.MenuLabel;
     };
-    RichContentVideoEditor.prototype.GetMenuIconClasses = function () {
+    RichContentMediaEditor.prototype.GetMenuIconClasses = function () {
         return 'fas fa-video';
     };
-    RichContentVideoEditor.prototype.AllowInTableCell = function () {
+    RichContentMediaEditor.prototype.AllowInTableCell = function () {
         return true;
     };
-    RichContentVideoEditor.prototype.AllowInLink = function () {
+    RichContentMediaEditor.prototype.AllowInLink = function () {
         return true;
     };
-    RichContentVideoEditor.prototype.Clean = function (elem) {
-        var wrapper = elem.closest('.rce-video-wrapper');
-        var coreElement = wrapper.find('.rce-video');
-        coreElement.removeClass('rce-video');
-        elem.removeAttr('draggable');
+    RichContentMediaEditor.prototype.Clean = function (elem) {
+        elem.removeClass('rce-media');
+        //elem.removeAttr('draggable');
         _super.prototype.Clean.call(this, elem);
     };
-    RichContentVideoEditor.prototype.GetContextButtonText = function (_elem) {
-        return 'vid';
+    RichContentMediaEditor.prototype.GetContextButtonText = function (_elem) {
+        return 'media';
     };
-    RichContentVideoEditor.prototype.GetContextCommands = function (_elem) {
+    RichContentMediaEditor.prototype.GetContextCommands = function (_elem) {
         var _this = this;
         var editCommand = new ContextCommand(this._locale.EditMenuLabel, 'fas fa-cog', function (elem) {
             _this.showSelectionDialog(elem);
         });
         return [editCommand];
     };
-    RichContentVideoEditor._localeRegistrations = {};
-    return RichContentVideoEditor;
+    RichContentMediaEditor._localeRegistrations = {};
+    return RichContentMediaEditor;
 }(RichContentBaseEditor));
-RichContentBaseEditor.RegisterEditor('RichContentVideoEditor', RichContentVideoEditor);
-//# sourceMappingURL=RichContentVideoEditor.js.map 
+RichContentBaseEditor.RegisterEditor('RichContentVideoEditor', RichContentMediaEditor);
+//# sourceMappingURL=RichContentMediaEditor.js.map 
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -1844,10 +1896,12 @@ var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -2014,10 +2068,12 @@ var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -2199,6 +2255,28 @@ var RichContentFontAwesomeIconEditor = /** @class */ (function (_super) {
         elem.removeAttr('draggable');
         _super.prototype.Clean.call(this, elem);
     };
+    RichContentFontAwesomeIconEditor.prototype.EliminateElementWrapper = function (wrapperElement) {
+        var _this = this;
+        var left = wrapperElement.hasClass('rce-icon-left');
+        var right = wrapperElement.hasClass('rce-icon-right');
+        var children = wrapperElement.children();
+        children.each(function () {
+            _this.RichContentEditorInstance.CleanElement($(this));
+            var css;
+            if (left) {
+                $(this).addClass(_this.RichContentEditorInstance.GridFramework.GetLeftAlignClass());
+                css = _this.RichContentEditorInstance.GridFramework.GetLeftAlignCss();
+            }
+            if (right) {
+                $(this).addClass(_this.RichContentEditorInstance.GridFramework.GetRightAlignClass());
+                css = _this.RichContentEditorInstance.GridFramework.GetRightAlignCss();
+            }
+            if (css != null)
+                $(this).css(css.Key, css.Value);
+        });
+        var detachedElements = wrapperElement.children().detach();
+        wrapperElement.replaceWith(detachedElements);
+    };
     RichContentFontAwesomeIconEditor.prototype.GetContextButtonText = function (_elem) {
         return 'ico';
     };
@@ -2246,10 +2324,12 @@ var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -2309,13 +2389,26 @@ var RichContentTableEditor = /** @class */ (function (_super) {
     RichContentTableEditor.prototype.AllowInTableCell = function () {
         return true;
     };
-    RichContentTableEditor.prototype.addTableRow = function (table) {
+    RichContentTableEditor.prototype.addTableRow = function (table, addColumn) {
+        if (addColumn === void 0) { addColumn = true; }
         var rowClass = this.RichContentEditorInstance.GridFramework.GetRowClass();
         var row = $("<div class=\"" + rowClass + "\"></div>");
-        this.addTableColumn(row);
+        if (addColumn) {
+            this.addTableColumn(row);
+        }
         table.append(row);
         this.SetupEditor(row, true);
         this.attachRow(row);
+        return row;
+    };
+    RichContentTableEditor.prototype.duplicateTableRow = function (row) {
+        var _this = this;
+        var newRow = this.addTableRow(row.parent(), false);
+        var columns = row.find('.col');
+        columns.each(function () {
+            var newColumn = _this.addTableColumn(newRow);
+            newColumn.attr('class', $(this).attr('class'));
+        });
     };
     RichContentTableEditor.prototype.attachRow = function (row) {
         if (window.Sortable) {
@@ -2349,6 +2442,7 @@ var RichContentTableEditor = /** @class */ (function (_super) {
         this.attachColumn(col);
         col.appendTo(row);
         this.SetupEditor(col, true);
+        return col;
     };
     RichContentTableEditor.prototype.attachColumn = function (col) {
         if (window.Sortable) {
@@ -2573,6 +2667,11 @@ var RichContentTableEditor = /** @class */ (function (_super) {
             }
         });
         result.push(insertColumnCommand);
+        var copyCommand = new ContextCommand(this._locale.CopyRowMenuLabel, 'fas fa-copy', function (elem) {
+            _this.duplicateTableRow(elem);
+            _this.OnChange();
+        });
+        result.push(copyCommand);
         return result;
     };
     RichContentTableEditor.prototype.getTableContextCommands = function (_elem) {
@@ -2612,10 +2711,12 @@ var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -2690,10 +2791,12 @@ var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -2754,10 +2857,12 @@ var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -2846,11 +2951,21 @@ var RichContentUtils = /** @class */ (function () {
         if (ext === 'mp4') {
             return 'video/mp4';
         }
+        if (ext === 'mp3') {
+            return 'audio/mpeg';
+        }
         return null;
     };
     RichContentUtils.IsVideoUrl = function (url) {
         var ext = this.GetExtensionOfUrl(url);
         if (ext === 'mp4') {
+            return true;
+        }
+        return false;
+    };
+    RichContentUtils.IsAudioUrl = function (url) {
+        var ext = this.GetExtensionOfUrl(url);
+        if (ext === 'mp3') {
             return true;
         }
         return false;
@@ -2984,15 +3099,15 @@ var RichContentIFrameEditorLocale = /** @class */ (function () {
 }());
 RichContentIFrameEditor.RegisterLocale(RichContentIFrameEditorLocale, 'EN');
 //# sourceMappingURL=RichContentIFrameEditorLocaleEN.js.map 
-var RichContentVideoEditorLocale = /** @class */ (function () {
-    function RichContentVideoEditorLocale() {
-        this.MenuLabel = "Video";
+var RichContentMediaEditorLocale = /** @class */ (function () {
+    function RichContentMediaEditorLocale() {
+        this.MenuLabel = "Media";
         this.EditMenuLabel = "Edit Settings";
     }
-    return RichContentVideoEditorLocale;
+    return RichContentMediaEditorLocale;
 }());
-RichContentVideoEditor.RegisterLocale(RichContentVideoEditorLocale, 'EN');
-//# sourceMappingURL=RichContentVideoEditorLocaleEN.js.map 
+RichContentMediaEditor.RegisterLocale(RichContentMediaEditorLocale, 'EN');
+//# sourceMappingURL=RichContentMediaEditorLocaleEN.js.map 
 var RichContentLinkEditorLocale = /** @class */ (function () {
     function RichContentLinkEditorLocale() {
         this.MenuLabel = "Link";
@@ -3032,6 +3147,7 @@ var RichContentTableEditorLocale = /** @class */ (function () {
         this.MenuLabel = "Table";
         this.SettingsMenuLabel = "Change Settings";
         this.InsertColumnMenuLabel = "Insert Column";
+        this.CopyRowMenuLabel = "Duplicate Row";
         this.InsertRowMenuLabel = "Insert Row";
         this.SettingsDialogTitle = "Change Column Settings";
         this.ColumnWidthLabel = "Width";

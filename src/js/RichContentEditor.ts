@@ -173,8 +173,8 @@ class GridFrameworkBase
 
 interface FileListItem
 {
-    name: string;
-    uri: string;
+    Name: string;
+    Uri: string;
 }
 
 class FileManager
@@ -221,7 +221,7 @@ class FileManager
                 for (let i = 0; i < rows.length; i++)
                 {
                     const row = rows[i];
-                    const rowDiv = $(`<div class="row"><div class="col s12"><span class="item-title">${row.name}</span><a href="${row.uri}" target="_blank" class="rce-right"><i class="fas fa-external-link-alt"></i></a></div></div>`);
+                    const rowDiv = $(`<div class="row"><div class="col s12"><span class="item-title">${row.Name}</span><a href="${row.Uri}" target="_blank" class="rce-right"><i class="fas fa-external-link-alt"></i></a></div></div>`);
                     $('.file-table', dialog).append(rowDiv);
                 }
                 $('.file-table .col', dialog).click(function ()
@@ -586,6 +586,14 @@ class RichContentEditor
         {
             _this.CloseAllMenus();
             _this.showAddMenu($(this));
+        });
+
+        $(gridSelector + ' .add-text-button').click(function ()
+        {
+            const editor = _this.RegisteredEditors['RichContentTextEditor'];
+            _this.CloseAllMenus();
+            _this.handleChanged();
+            editor.Insert($(gridSelector + ' .rce-grid'));
         });
 
         $(gridSelector + ' .paste-button').click(function ()
@@ -1047,6 +1055,7 @@ class HtmlTemplates
             <div id="${id}" class="rce-grid-wrapper edit-mode">
                 <div class="rce-grid">
                     <a class="rce-button rce-button-flat rce-menu-button add-button"><i class="fas fa-plus-circle"></i></a>
+                    <a class="rce-button rce-button-flat rce-menu-button add-text-button"><i class="fas fa-font"></i></a>
                     <a class="rce-button rce-button-flat rce-menu-button paste-button"><i class="fas fa-paste"></i></a>
                 </div>
 

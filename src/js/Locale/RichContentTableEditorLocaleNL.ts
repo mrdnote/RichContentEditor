@@ -3,6 +3,7 @@
     MenuLabel = "Tabel";
     SettingsMenuLabel = "Instellingen aanpassen";
     InsertColumnMenuLabel = "Kolom invoegen";
+    CopyRowMenuLabel = "Rij dupliceren";
     InsertRowMenuLabel = "Rij invoegen";
     SettingsDialogTitle = "Kolominstellingen aanpassen";
     ColumnWidthSmall = "Mobiel";

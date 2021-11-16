@@ -82,15 +82,33 @@
         return true;
     }
 
-    private addTableRow(table: JQuery<HTMLElement>)
+    private addTableRow(table: JQuery<HTMLElement>, addColumn: boolean = true): JQuery<HTMLElement>
     {
         const rowClass = this.RichContentEditorInstance.GridFramework.GetRowClass();
         const row = $(`<div class="${rowClass}"></div>`);
-        this.addTableColumn(row);
+        if (addColumn)
+        {
+            this.addTableColumn(row);
+        }
         table.append(row);
         this.SetupEditor(row, true);
 
         this.attachRow(row);
+
+        return row;
+    }
+
+    private duplicateTableRow(row: JQuery<HTMLElement>)
+    {
+        const _this = this;
+
+        const newRow = this.addTableRow(row.parent(), false);
+        const columns = row.find('.col');
+        columns.each(function ()
+        {
+            const newColumn = _this.addTableColumn(newRow);
+            newColumn.attr('class', $(this).attr('class'));
+        });
     }
 
     private attachRow(row: JQuery<HTMLElement>)
@@ -109,7 +127,7 @@
         }
     }
 
-    private addTableColumn(row: JQuery<HTMLElement>)
+    private addTableColumn(row: JQuery<HTMLElement>): JQuery<HTMLElement>
     {
         const _this = this;
         let newWidth = 12;
@@ -135,6 +153,8 @@
 
         col.appendTo(row);
         this.SetupEditor(col, true);
+
+        return col;
     }
 
     private attachColumn(col: JQuery<HTMLElement>)
@@ -431,6 +451,13 @@
             }
         });
         result.push(insertColumnCommand);
+
+        var copyCommand = new ContextCommand(this._locale.CopyRowMenuLabel, 'fas fa-copy', function (elem)
+        {
+            _this.duplicateTableRow(elem);
+            _this.OnChange();
+        });
+        result.push(copyCommand);
 
         return result;
     }

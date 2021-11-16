@@ -3,6 +3,7 @@
     MenuLabel = "Table";
     SettingsMenuLabel = "Change Settings";
     InsertColumnMenuLabel = "Insert Column";
+    CopyRowMenuLabel = "Duplicate Row";
     InsertRowMenuLabel = "Insert Row";
     SettingsDialogTitle = "Change Column Settings";
     ColumnWidthLabel = "Width";

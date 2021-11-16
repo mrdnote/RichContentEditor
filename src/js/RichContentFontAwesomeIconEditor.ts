@@ -237,6 +237,35 @@ class RichContentFontAwesomeIconEditor extends RichContentBaseEditor
         super.Clean(elem);
     }
 
+    public EliminateElementWrapper(wrapperElement: JQuery<HTMLElement>)
+    {
+        const _this = this;
+
+        const left = wrapperElement.hasClass('rce-icon-left');
+        const right = wrapperElement.hasClass('rce-icon-right');
+
+        var children = wrapperElement.children();
+        children.each(function ()
+        {
+            _this.RichContentEditorInstance.CleanElement($(this));
+            let css: KeyValue<string>;
+            if (left)
+            {
+                $(this).addClass(_this.RichContentEditorInstance.GridFramework.GetLeftAlignClass());
+                css = _this.RichContentEditorInstance.GridFramework.GetLeftAlignCss();
+            }
+            if (right)
+            {
+                $(this).addClass(_this.RichContentEditorInstance.GridFramework.GetRightAlignClass());
+                css = _this.RichContentEditorInstance.GridFramework.GetRightAlignCss();
+            }
+            if (css != null) $(this).css(css.Key, css.Value);
+        });
+        const detachedElements = wrapperElement.children().detach();
+
+        wrapperElement.replaceWith(detachedElements);
+    }
+
     public GetContextButtonText(_elem: JQuery<HTMLElement>): string
     {
         return 'ico';

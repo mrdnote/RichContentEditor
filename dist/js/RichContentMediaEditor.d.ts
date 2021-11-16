@@ -1,21 +1,22 @@
 /// <reference types="jquery" />
-declare enum IconAlignment {
-    None = 0,
-    Left = 1,
-    Right = 2
+declare enum MediaType {
+    GenericVideo = 0,
+    YouTubeVideo = 1,
+    GenericAudio = 2
 }
-declare class RichContentFontAwesomeIconEditor extends RichContentBaseEditor {
+declare class RichContentMediaEditor extends RichContentBaseEditor {
     private _appendElement;
     private static _localeRegistrations?;
     private _locale?;
-    static RegisterLocale?<T extends typeof RichContentFontAwesomeIconEditorLocale>(localeType: T, language: string): void;
+    static RegisterLocale?<T extends typeof RichContentMediaEditorLocale>(localeType: T, language: string): void;
     Init(richContentEditor: RichContentEditor): void;
     Insert(targetElement?: JQuery<HTMLElement>): void;
     private showSelectionDialog;
-    InsertIcon(iconClass: any, linkUrl: string, lightBox: boolean, alignment: IconAlignment, targetElement?: JQuery<HTMLElement>): void;
-    private updateIcon;
-    private getIconAlignmentClass;
-    private getIconAlignment;
+    private getUrl;
+    InsertElement(url: string, targetElement?: JQuery<HTMLElement>): void;
+    private getCoreElement;
+    private updateElement;
+    private getMediaType;
     GetDetectionSelectors(): string;
     GetActualElement(elem: JQuery<HTMLElement>): JQuery<HTMLElement>;
     Import(targetElement: JQuery<HTMLElement>, source: JQuery<HTMLElement>, touchedElements: HTMLElement[]): JQuery<HTMLElement>;
@@ -24,10 +25,6 @@ declare class RichContentFontAwesomeIconEditor extends RichContentBaseEditor {
     AllowInTableCell(): boolean;
     AllowInLink(): boolean;
     Clean(elem: JQuery<HTMLElement>): void;
-    EliminateElementWrapper(wrapperElement: JQuery<HTMLElement>): void;
     GetContextButtonText(_elem: JQuery<HTMLElement>): string;
     GetContextCommands(_elem: JQuery<HTMLElement>): ContextCommand[];
-    private removeEditorAlignmentClasses;
-    private getEditDialog;
-    private getEditDialogHtml;
 }

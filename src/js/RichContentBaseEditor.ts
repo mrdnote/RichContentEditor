@@ -272,7 +272,7 @@ class RichContentBaseEditor
         }
 
         const deleteItem = $(`<button type="button" href="javascript:" class="rce-menu-item"><i class="rce-menu-icon fas fa-trash"></i> <span>${_this.RichContentEditorInstance.Locale.Delete}</span></button>`);
-        deleteItem.click(function () { _this.OnDelete(elem), menu.remove(); });
+        deleteItem.click(function () { _this.OnChange(), _this.OnDelete(elem), menu.remove(); });
         menu.append(deleteItem)
 
         RichContentUtils.ShowMenu(menu, buttonOrPosition);

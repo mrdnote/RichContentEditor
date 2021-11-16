@@ -42,8 +42,8 @@ declare class GridFrameworkBase {
     GetColumnRightAlignClass(): string;
 }
 interface FileListItem {
-    name: string;
-    uri: string;
+    Name: string;
+    Uri: string;
 }
 declare class FileManager {
     private _richContentEditor;

@@ -194,6 +194,9 @@ class RichContentTextEditor extends RichContentBaseEditor
         elem.removeAttr('contenteditable');
         elem.addClass('text');
 
+        // Remove the attribute to prevent clicking on links in the text editor.
+        elem.find('a').removeAttr('onclick');
+
         super.Clean(elem);
     }
 

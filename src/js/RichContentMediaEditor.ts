@@ -1,19 +1,26 @@
-﻿class RichContentVideoEditor extends RichContentBaseEditor
+﻿enum MediaType
+{
+    GenericVideo,
+    YouTubeVideo,
+    GenericAudio
+}
+
+class RichContentMediaEditor extends RichContentBaseEditor
 {
     private _appendElement: JQuery<HTMLElement>;
-    private static _localeRegistrations?: Dictionary<typeof RichContentVideoEditorLocale> = {};
-    private _locale?: RichContentVideoEditorLocale;
+    private static _localeRegistrations?: Dictionary<typeof RichContentMediaEditorLocale> = {};
+    private _locale?: RichContentMediaEditorLocale;
 
-    public static RegisterLocale?<T extends typeof RichContentVideoEditorLocale>(localeType: T, language: string)
+    public static RegisterLocale?<T extends typeof RichContentMediaEditorLocale>(localeType: T, language: string)
     {
-        RichContentVideoEditor._localeRegistrations[language] = localeType;
+        RichContentMediaEditor._localeRegistrations[language] = localeType;
     }
 
     public Init(richContentEditor: RichContentEditor)
     {
         super.Init(richContentEditor);
 
-        this._locale = new RichContentVideoEditor._localeRegistrations[richContentEditor.Options.Language]();
+        this._locale = new RichContentMediaEditor._localeRegistrations[richContentEditor.Options.Language]();
     }
 
     public Insert(targetElement?: JQuery<HTMLElement>)
@@ -39,7 +46,7 @@
 
         if (elem)
         {
-            const coreElement = elem.find('.video');
+            const coreElement = elem.find('.rce-media');
             url = this.getUrl(coreElement);
         }
 
@@ -67,12 +74,17 @@
             return $('iframe', coreElement).attr('src');
         }
 
-        return $('video source', coreElement).attr('src');
+        if ($('video source', coreElement).length)
+        {
+            return $('video source', coreElement).attr('src');
+        }
+
+        return $('audio source', coreElement).attr('src');
     }
 
     public InsertElement(url: string, targetElement?: JQuery<HTMLElement>)
     {
-        const wrapper = $('<div class="rce-video-wrapper"></div>');
+        const wrapper = $('<div class="rce-media-wrapper"></div>');
 
         this.updateElement(wrapper, url);
 
@@ -84,45 +96,71 @@
         this.Attach(wrapper, targetElement);
     }
 
-    private isYouTube(url: string)
+    private getCoreElement(mediaType: MediaType)
     {
-        return url.indexOf('youtube.com/embed/') > -1;
-    }
-
-    private getCoreElement(youtube)
-    {
-        if (youtube)
+        if (mediaType == MediaType.YouTubeVideo)
         {
-            return $('<div class="rce-video video"><iframe allowfullscreen="allowfullscreen" frameborder="0"></iframe></div>');
+            return $('<div class="rce-media video"><iframe allowfullscreen="allowfullscreen" frameborder="0"></iframe></div>');
         }
 
-        return $('<div class="rce-video video videojs"><video class="video-js vjs-default-skin vjs-16-9" preload="auto" controls><source /></video></div>');
+        if (mediaType == MediaType.GenericVideo)
+        {
+            return $('<div class="rce-media video videojs"><video class="video-js vjs-default-skin vjs-16-9" preload="auto" controls><source /></video></div>');
+        }
+
+        if (mediaType == MediaType.GenericAudio)
+        {
+            return $('<div class="rce-media audio videojs"><audio class="video-js vjs-default-skin" preload="auto" controls><source /></video></div>');
+        }
     }
 
     private updateElement(elem: JQuery<HTMLElement>, url: string)
     {
-        const youtube = this.isYouTube(url);
+        const mediaType = this.getMediaType(url);
 
-        const coreElement = this.getCoreElement(youtube); 
+        const coreElement = this.getCoreElement(mediaType); 
 
         elem.empty();
         elem.append(coreElement);
 
-        if (youtube)
+        if (mediaType == MediaType.YouTubeVideo)
         {
             const iframe = coreElement.find('iframe');
             iframe.attr('src', url);
         }
-        else
+        else if (mediaType == MediaType.GenericVideo)
         {
             const source = coreElement.find('video source');
             source.attr('src', url);
+        }
+        else if (mediaType == MediaType.GenericAudio)
+        {
+            const source = coreElement.find('audio source');
+            source.attr('src', url);
+        }
+    }
+
+    private getMediaType(url: string): MediaType
+    {
+        if (url.indexOf('youtube.com/embed/') > -1)
+        {
+            return MediaType.YouTubeVideo;
+        }
+
+        if (RichContentUtils.GetMimeType(url).split('/')[0] == 'video')
+        {
+            return MediaType.GenericVideo
+        }
+
+        if (RichContentUtils.GetMimeType(url).split('/')[0] == 'audio')
+        {
+            return MediaType.GenericAudio
         }
     }
 
     public GetDetectionSelectors(): string
     {
-        return 'div.video';
+        return 'div.video,div.audio';
     }
 
     public GetActualElement(elem: JQuery<HTMLElement>): JQuery<HTMLElement>
@@ -132,11 +170,11 @@
 
     public Import(targetElement: JQuery<HTMLElement>, source: JQuery<HTMLElement>, touchedElements: HTMLElement[]): JQuery<HTMLElement>
     {
-        if (source.is('div.video'))
+        if (source.is('div.video') || source.is('div.audio'))
         {
             let clone = source.clone();
-            clone.addClass('rce-video');
-            const wrapper = $('<div class="rce-video-wrapper"></div>');
+            clone.addClass('rce-media');
+            const wrapper = $('<div class="rce-media-wrapper"></div>');
             wrapper.append(clone);
             source.replaceWith(wrapper);
 
@@ -170,17 +208,15 @@
 
     public Clean(elem: JQuery<HTMLElement>): void
     {
-        var wrapper = elem.closest('.rce-video-wrapper');
-        var coreElement = wrapper.find('.rce-video');
-        coreElement.removeClass('rce-video');
-        elem.removeAttr('draggable');
+        elem.removeClass('rce-media');
+        //elem.removeAttr('draggable');
 
         super.Clean(elem);
     }
 
     public GetContextButtonText(_elem: JQuery<HTMLElement>): string
     {
-        return 'vid';
+        return 'media';
     }
 
     public GetContextCommands(_elem: JQuery<HTMLElement>): ContextCommand[]
@@ -196,4 +232,4 @@
     }
 }
 
-RichContentBaseEditor.RegisterEditor('RichContentVideoEditor', RichContentVideoEditor);
+RichContentBaseEditor.RegisterEditor('RichContentVideoEditor', RichContentMediaEditor);

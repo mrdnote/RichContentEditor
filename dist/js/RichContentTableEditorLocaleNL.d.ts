@@ -2,6 +2,7 @@ declare class RichContentTableEditorLocaleNL extends RichContentTableEditorLocal
     MenuLabel: string;
     SettingsMenuLabel: string;
     InsertColumnMenuLabel: string;
+    CopyRowMenuLabel: string;
     InsertRowMenuLabel: string;
     SettingsDialogTitle: string;
     ColumnWidthSmall: string;
